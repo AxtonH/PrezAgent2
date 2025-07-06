@@ -25,7 +25,7 @@ TEMPLATE_OPTIONS = {
     },
     "employment_letter": {
         "name": "Employment letter", 
-        "path": str(TEMPLATES_DIR / "Employment Letter.docx"),
+        "path": str(TEMPLATES_DIR / "Employment Letter .docx"),  # Note the space before .docx
         "description": "Standard employment letter in English"
     },
     "employment_letter_embassy": {
