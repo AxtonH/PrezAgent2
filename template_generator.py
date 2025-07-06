@@ -1,4 +1,4 @@
-﻿import io
+import io
 import xmlrpc.client
 import streamlit as st
 from docx import Document
@@ -12,6 +12,11 @@ from pathlib import Path
 
 # Template configuration - using relative paths with pathlib
 TEMPLATES_DIR = Path(__file__).parent / "templates"
+st.write("Templates directory:", TEMPLATES_DIR)
+if TEMPLATES_DIR.exists():
+    st.write("Files in templates directory:", os.listdir(TEMPLATES_DIR))
+else:
+    st.write("Templates directory does not exist!")
 TEMPLATE_OPTIONS = {
     "employment_letter_arabic": {
         "name": "Employment letter - Arabic",
