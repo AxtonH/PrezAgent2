@@ -1,4 +1,4 @@
-﻿# chat.py
+# chat.py
 import streamlit as st
 from openai_helper import generate_ai_response
 from ui_components import render_chat_message
@@ -57,6 +57,18 @@ class ChatManager:
                             link_html = self.get_download_link(
                                 st.session_state["template_bytes"],
                                 st.session_state["template_filename"]
+                            )
+                            st.markdown(f'<div class="bot-bubble">{link_html}</div>', unsafe_allow_html=True)
+                    elif content.startswith("[DOWNLOAD_LINK"):
+                        if st.session_state.get("template_bytes") and st.session_state.get("template_filename"):
+                            # Support custom link text: [DOWNLOAD_LINK|Custom Text]
+                            link_text = "Download Employment Letter"
+                            if content.startswith("[DOWNLOAD_LINK|") and content.endswith("]"):
+                                link_text = content[len("[DOWNLOAD_LINK|"):-1]
+                            link_html = self.get_download_link(
+                                st.session_state["template_bytes"],
+                                st.session_state["template_filename"],
+                                link_text
                             )
                             st.markdown(f'<div class="bot-bubble">{link_html}</div>', unsafe_allow_html=True)
                     else:
