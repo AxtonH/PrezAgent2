@@ -1,4 +1,4 @@
-﻿# employee_request_helper.py - Enhanced version with hybrid intent detection
+# employee_request_helper.py - Enhanced version with hybrid intent detection
 import streamlit as st
 import re
 from datetime import datetime, timedelta
@@ -834,8 +834,11 @@ The document has been prepared and is ready for download. Click the download but
 
 **Note:** Please review the document before submitting it. If you need any changes, let me know!"""
             # Add both messages to chat history
+            download_text = "Download Employment Letter"
+            if template_type == 'employment_letter_embassy':
+                download_text = "Download Embassy Letter"
             st.session_state.messages.append({"role": "assistant", "content": response})
-            st.session_state.messages.append({"role": "assistant", "content": "[DOWNLOAD_LINK]"})
+            st.session_state.messages.append({"role": "assistant", "content": f"[DOWNLOAD_LINK|{download_text}]"})
             return None
         else:
             # Check debug info for error details
