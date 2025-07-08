@@ -1,4 +1,4 @@
-﻿import openai
+import openai
 import json
 import time
 import streamlit as st
@@ -146,6 +146,10 @@ def generate_ai_response(query, employee_data):
     """
     # Workflow Prioritization
     active_workflow = get_session_value('active_workflow')
+    # --- TEMPLATE/EMBASSY LETTER WORKFLOW GUARD ---
+    if st.session_state.get('template_request', {}).get('template_type') or st.session_state.get('template_request', {}).get('embassy_details'):
+        return handle_template_request(query, employee_data)
+
     if active_workflow:
         if active_workflow == 'overtime_request':
             return handle_overtime_request(query, employee_data)
