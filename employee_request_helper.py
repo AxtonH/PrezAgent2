@@ -19,6 +19,7 @@ from arabic_english_detection import (
     detect_exit_intent_multilingual
 )
 from typing import Optional
+from openai_helper import detect_leave_balance_intent, format_leave_balance
 
 # Set up OpenAI for intent detection (optional)
 openai.api_key = OPENAI_API_KEY
@@ -217,6 +218,10 @@ def handle_employee_request(query, employee_data):
             st.session_state.template_request = {}
         st.session_state.active_workflow = None
         return "Request cancelled. How else can I help?"
+
+    # --- LEAVE BALANCE INTENT GUARD ---
+    if detect_leave_balance_intent(query):
+        return format_leave_balance(employee_data)
 
     # Check for time-off intent first
     if detect_time_off_intent(query) or st.session_state.get('time_off_request', {}).get('step'):
