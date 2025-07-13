@@ -23,6 +23,7 @@ from overtime_request_helper import detect_overtime_intent, handle_overtime_requ
 from employee_search import handle_employee_search, detect_employee_search_intent
 from session_manager import get_session_value, update_session_value, clear_workflow
 from expense_report_helper import start_expense_workflow, handle_expense_workflow
+from odoo_connector import get_employee_leave_data
 
 # Set the API key
 openai.api_key = OPENAI_API_KEY
@@ -140,6 +141,39 @@ def detect_expense_report_intent(query):
     ]
     return any(k in query_lower for k in keywords)
 
+def detect_leave_balance_intent(query):
+    """
+    Detect if the user is asking for their leave balance or history.
+    Returns True if the query is about leave balance, False otherwise.
+    """
+    query_lower = query.lower()
+    balance_keywords = [
+        'leave balance', 'time off balance', 'vacation balance', 'sick balance',
+        'how many days', 'how much leave', 'how much time off',
+        'check my leave', 'check my balance', 'check my time off',
+        'days remaining', 'days left', 'days available',
+        'did i take', 'have i taken', 'days i took',
+        'time off history', 'leave history',
+        'show my leave', 'display my leave', 'list my leave',
+        'what is my leave', 'do i have leave', 'do i have time off',
+        'leave summary', 'leave report', 'leave status', 'leave entitlement'
+    ]
+    return any(k in query_lower for k in balance_keywords)
+
+def format_leave_balance(employee_data):
+    """
+    Fetch and format the user's leave balances for display.
+    """
+    employee_id = employee_data.get('id')
+    leave_data = get_employee_leave_data(employee_id)
+    summary = leave_data.get('summary', {})
+    if not summary:
+        return "I couldn't find any leave balance data for you. Please contact HR."
+    lines = ["**Your Leave Balances:**\n"]
+    for leave_type, info in summary.items():
+        lines.append(f"- **{leave_type}**: {info['balance']} days available (Allocated: {info['allocated']}, Taken: {info['taken']}, Requested: {info['requested']})")
+    return "\n".join(lines)
+
 def generate_ai_response(query, employee_data):
     """
     Generate AI response using OpenAI Assistant (Prezbot) based on employee data and query
@@ -149,6 +183,10 @@ def generate_ai_response(query, employee_data):
     # --- TEMPLATE/EMBASSY LETTER WORKFLOW GUARD ---
     if st.session_state.get('template_request', {}).get('template_type') or st.session_state.get('template_request', {}).get('embassy_details'):
         return handle_template_request(query, employee_data)
+
+    # --- LEAVE BALANCE INTENT GUARD ---
+    if detect_leave_balance_intent(query):
+        return format_leave_balance(employee_data)
 
     if active_workflow:
         if active_workflow == 'overtime_request':
