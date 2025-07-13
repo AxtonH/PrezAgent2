@@ -24,6 +24,8 @@ from employee_search import handle_employee_search, detect_employee_search_inten
 from session_manager import get_session_value, update_session_value, clear_workflow
 from expense_report_helper import start_expense_workflow, handle_expense_workflow
 from odoo_connector import get_employee_leave_data
+import re
+from rapidfuzz import fuzz
 
 # Set the API key
 openai.api_key = OPENAI_API_KEY
@@ -145,8 +147,10 @@ def detect_leave_balance_intent(query):
     """
     Detect if the user is asking for their leave balance or history.
     Returns True if the query is about leave balance, False otherwise.
+    Uses regex and fuzzy matching for robust detection.
     """
-    query_lower = query.lower()
+    query_lower = query.lower().strip()
+    # Direct keyword/phrase matches
     balance_keywords = [
         'leave balance', 'time off balance', 'vacation balance', 'sick balance',
         'how many days', 'how much leave', 'how much time off',
@@ -158,7 +162,26 @@ def detect_leave_balance_intent(query):
         'what is my leave', 'do i have leave', 'do i have time off',
         'leave summary', 'leave report', 'leave status', 'leave entitlement'
     ]
-    return any(k in query_lower for k in balance_keywords)
+    for k in balance_keywords:
+        if k in query_lower:
+            return True
+    # Regex patterns for flexible matching
+    patterns = [
+        r'can (i|you) (get|show|give|see|tell).*\b(leave|time off|vacation|sick)\b.*\b(balance|summary|report|status|entitlement)\b',
+        r'how (many|much).*\b(leave|time off|vacation|sick)\b',
+        r'what is my (leave|time off|vacation|sick) (balance|status|entitlement)',
+        r'(leave|time off|vacation|sick) (balance|summary|report|status|entitlement)',
+        r'(show|display|list|tell).*\b(leave|time off|vacation|sick)\b',
+        r'(leave|time off|vacation|sick).*\b(history|taken|used|remaining|left|available)\b',
+    ]
+    for pat in patterns:
+        if re.search(pat, query_lower):
+            return True
+    # Fuzzy matching for very flexible queries
+    for k in balance_keywords:
+        if fuzz.partial_ratio(k, query_lower) > 80:
+            return True
+    return False
 
 def format_leave_balance(employee_data):
     """
