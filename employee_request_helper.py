@@ -19,7 +19,6 @@ from arabic_english_detection import (
     detect_exit_intent_multilingual
 )
 from typing import Optional
-from openai_helper import detect_leave_balance_intent, format_leave_balance
 
 # Set up OpenAI for intent detection (optional)
 openai.api_key = OPENAI_API_KEY
