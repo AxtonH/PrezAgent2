@@ -19,6 +19,7 @@ from arabic_english_detection import (
     detect_exit_intent_multilingual
 )
 from typing import Optional
+from openai_helper import detect_leave_balance_intent, format_leave_balance
 
 # Set up OpenAI for intent detection (optional)
 openai.api_key = OPENAI_API_KEY
@@ -841,6 +842,8 @@ The document has been prepared and is ready for download. Click the download but
             download_text = "Download Employment Letter"
             if template_type == 'employment_letter_embassy':
                 download_text = "Download Embassy Letter"
+            elif template_type == 'experience_letter':
+                download_text = "Download Experience Letter"
             st.session_state.messages.append({"role": "assistant", "content": response})
             st.session_state.messages.append({"role": "assistant", "content": f"[DOWNLOAD_LINK|{download_text}]"})
             return None
