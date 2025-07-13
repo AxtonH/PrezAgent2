@@ -890,3 +890,61 @@ Just let me know which one you need!
         st.session_state.template_request = {}
         st.session_state.active_workflow = None
         return "تم إلغاء عملية إنشاء المستند. يمكنك البدء من جديد أو طلب مساعدة أخرى."
+
+def detect_leave_balance_intent(query):
+    """
+    Detect if the user is asking for their leave balance or history.
+    Returns True if the query is about leave balance, False otherwise.
+    Uses regex and fuzzy matching for robust detection.
+    """
+    import re
+    from rapidfuzz import fuzz
+    query_lower = query.lower().strip()
+    # Direct keyword/phrase matches
+    balance_keywords = [
+        'leave balance', 'time off balance', 'vacation balance', 'sick balance',
+        'how many days', 'how much leave', 'how much time off',
+        'check my leave', 'check my balance', 'check my time off',
+        'days remaining', 'days left', 'days available',
+        'did i take', 'have i taken', 'days i took',
+        'time off history', 'leave history',
+        'show my leave', 'display my leave', 'list my leave',
+        'what is my leave', 'do i have leave', 'do i have time off',
+        'leave summary', 'leave report', 'leave status', 'leave entitlement'
+    ]
+    for k in balance_keywords:
+        if k in query_lower:
+            return True
+    # Regex patterns for flexible matching
+    patterns = [
+        r'can (i|you) (get|show|give|see|tell).*\b(leave|time off|vacation|sick)\b.*\b(balance|summary|report|status|entitlement)\b',
+        r'how (many|much).*\b(leave|time off|vacation|sick)\b',
+        r'what is my (leave|time off|vacation|sick) (balance|status|entitlement)',
+        r'(leave|time off|vacation|sick) (balance|summary|report|status|entitlement)',
+        r'(show|display|list|tell).*\b(leave|time off|vacation|sick)\b',
+        r'(leave|time off|vacation|sick).*\b(history|taken|used|remaining|left|available)\b',
+    ]
+    for pat in patterns:
+        if re.search(pat, query_lower):
+            return True
+    # Fuzzy matching for very flexible queries
+    for k in balance_keywords:
+        if fuzz.partial_ratio(k, query_lower) > 80:
+            return True
+    return False
+
+from odoo_connector import get_employee_leave_data
+
+def format_leave_balance(employee_data):
+    """
+    Fetch and format the user's leave balances for display.
+    """
+    employee_id = employee_data.get('id')
+    leave_data = get_employee_leave_data(employee_id)
+    summary = leave_data.get('summary', {})
+    if not summary:
+        return "I couldn't find any leave balance data for you. Please contact HR."
+    lines = ["**Your Leave Balances:**\n"]
+    for leave_type, info in summary.items():
+        lines.append(f"- **{leave_type}**: {info['balance']} days available (Allocated: {info['allocated']}, Taken: {info['taken']}, Requested: {info['requested']})")
+    return "\n".join(lines)
