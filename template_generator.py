@@ -12,11 +12,6 @@ from pathlib import Path
 
 # Template configuration - using relative paths with pathlib
 TEMPLATES_DIR = Path(__file__).parent / "templates"
-st.write("Templates directory:", TEMPLATES_DIR)
-if TEMPLATES_DIR.exists():
-    st.write("Files in templates directory:", os.listdir(TEMPLATES_DIR))
-else:
-    st.write("Templates directory does not exist!")
 TEMPLATE_OPTIONS = {
     "employment_letter_arabic": {
         "name": "Employment letter - Arabic",
@@ -25,7 +20,7 @@ TEMPLATE_OPTIONS = {
     },
     "employment_letter": {
         "name": "Employment letter", 
-        "path": str(TEMPLATES_DIR / "Employment Letter .docx"),  # Note the space before .docx
+        "path": str(TEMPLATES_DIR / "Employment Letter.docx"),
         "description": "Standard employment letter in English"
     },
     "employment_letter_embassy": {
@@ -483,9 +478,25 @@ def parse_embassy_details(query: str) -> Dict[str, Any]:
     
     return details
 
+def get_gendered_template_path(template_type: str, gender: str) -> Optional[str]:
+    """Return the gendered template path if available, else the default."""
+    base_info = TEMPLATE_OPTIONS.get(template_type)
+    if not base_info:
+        return None
+    base_path = Path(base_info['path'])
+    base_name = base_path.stem
+    ext = base_path.suffix
+    gender = (gender or '').lower()
+    if gender in ['male', 'female']:
+        gendered_name = f"{base_name} - {gender.capitalize()}{ext}"
+        gendered_path = base_path.parent / gendered_name
+        if gendered_path.exists():
+            return str(gendered_path)
+    return str(base_path)
+
 def generate_template(template_type: str, employee_data: Dict[str, Any], 
                      embassy_details: Optional[Dict[str, Any]] = None) -> Optional[Tuple[bytes, str]]:
-    """Generate a template for the employee"""
+    """Generate a template for the employee, using gendered templates if available."""
     
     # Initialize debug_info at the very beginning of this function
     if 'debug_info' not in st.session_state:
@@ -543,8 +554,9 @@ def generate_template(template_type: str, employee_data: Dict[str, Any],
     if not template_info:
         st.session_state.debug_info['template_generation']['error'] = f'Template type not found: {template_type}'
         return None
-    
-    template_path = template_info['path']
+    # Gender-based template selection
+    gender = employee_data.get('gender', '').lower()
+    template_path = get_gendered_template_path(template_type, gender)
     is_arabic = template_type == 'employment_letter_arabic'
     
     st.session_state.debug_info['template_generation']['template_path'] = template_path
