@@ -487,11 +487,31 @@ def get_gendered_template_path(template_type: str, gender: str) -> Optional[str]
     base_name = base_path.stem
     ext = base_path.suffix
     gender = (gender or '').lower()
-    if gender in ['male', 'female']:
-        gendered_name = f"{base_name} - {gender.capitalize()}{ext}"
-        gendered_path = base_path.parent / gendered_name
-        if gendered_path.exists():
-            return str(gendered_path)
+    # Arabic version
+    if 'arabic' in base_name.lower():
+        if gender in ['male', 'female']:
+            gendered_name = f"Employment Letter - ARABIC - {gender.capitalize()}{ext}"
+            gendered_path = base_path.parent / gendered_name
+            if gendered_path.exists():
+                return str(gendered_path)
+        # fallback
+        generic_name = f"Employment Letter - ARABIC{ext}"
+        generic_path = base_path.parent / generic_name
+        if generic_path.exists():
+            return str(generic_path)
+    # English version
+    else:
+        if gender in ['male', 'female']:
+            gendered_name = f"Employment Letter - {gender.capitalize()}{ext}"
+            gendered_path = base_path.parent / gendered_name
+            if gendered_path.exists():
+                return str(gendered_path)
+        # fallback
+        generic_name = f"Employment Letter {ext}"
+        generic_path = base_path.parent / generic_name
+        if generic_path.exists():
+            return str(generic_path)
+    # fallback to whatever is in TEMPLATE_OPTIONS
     return str(base_path)
 
 def generate_template(template_type: str, employee_data: Dict[str, Any], 
