@@ -418,6 +418,9 @@ def parse_time_off_details(query):
         # DD/MM to DD/MM format (e.g., "20/7 to 21/7", "20-7 to 21-7")
         r'(?:from\s+)?(\d{1,2}[/-]\d{1,2})\s*(?:to|till|until|through|-|–)\s*(\d{1,2}[/-]\d{1,2})',
         
+        # "X of month" format (e.g., "20th of july till the 21st of july", "20 of july to 21 of july")
+        r'(?:from\s+)?(\d{1,2}(?:st|nd|rd|th)?\s+of\s+\w+)\s*(?:to|till|until|through|-|–)\s*(?:the\s+)?(\d{1,2}(?:st|nd|rd|th)?\s+of\s+\w+)',
+        
         # Written month formats (e.g., "august 2nd till august 9th", "august 2 to august 9")
         r'(?:from\s+)?(\w+\s+\d{1,2}(?:st|nd|rd|th)?)\s*(?:to|till|until|through|-|–)\s*(\w+\s+\d{1,2}(?:st|nd|rd|th)?)',
         
@@ -462,6 +465,7 @@ def parse_time_off_details(query):
         r'(\d{1,2}[/-]\d{1,2}(?:[/-]\d{2,4})?)',  # DD/MM or DD/MM/YYYY
         r'(\w+\s+\d{1,2}(?:st|nd|rd|th)?)',  # Month Day
         r'(\d{1,2}(?:st|nd|rd|th)?\s+\w+)',  # Day Month
+        r'(\d{1,2}(?:st|nd|rd|th)?\s+of\s+\w+)',  # X of month (e.g., "20th of july")
     ]
     
     for pattern in single_date_patterns:
