@@ -735,6 +735,38 @@ def handle_template_request(query, employee_data):
         if template_type and template_type != 'general_template_request':
             request_data['template_type'] = template_type
     
+    # Language selection for employment letters
+    if request_data.get('template_type') == 'employment_letter' and not request_data.get('language_selected'):
+        # Check if user specified language in their request
+        query_lower = query.lower()
+        if any(word in query_lower for word in ['arabic', 'عربي', 'بالعربية', 'عربية']):
+            request_data['template_type'] = 'employment_letter_arabic'
+            request_data['language_selected'] = True
+        elif any(word in query_lower for word in ['english', 'انجليزي', 'بالانجليزي']):
+            request_data['template_type'] = 'employment_letter'
+            request_data['language_selected'] = True
+        else:
+            # Check if this is a response to the language prompt
+            if any(word in query_lower for word in ['arabic', 'عربي', 'بالعربية', 'عربية', '2', 'arabic']):
+                request_data['template_type'] = 'employment_letter_arabic'
+                request_data['language_selected'] = True
+            elif any(word in query_lower for word in ['english', 'انجليزي', 'بالانجليزي', '1', 'english']):
+                request_data['template_type'] = 'employment_letter'
+                request_data['language_selected'] = True
+            else:
+                # Ask for language preference
+                st.session_state.template_request = request_data
+                return """I'll help you generate an employment letter!
+
+Which language would you prefer?
+
+1. **English** - Standard employment letter in English
+2. **Arabic** - Employment letter in Arabic
+
+Please type "English" or "Arabic" to continue.
+
+💡 *Type "cancel" to exit this process.*"""
+    
     # If embassy letter, check for additional details
     if request_data.get('template_type') == 'employment_letter_embassy':
         if not request_data.get('embassy_details'):
