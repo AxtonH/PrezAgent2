@@ -234,10 +234,11 @@ def handle_employee_request(query, employee_data):
     # Try to handle as time-off by default, as it's the most common request
     return handle_time_off_request(query, employee_data)
 
-# Keep all the other functions from the original file unchanged
 def parse_single_date(date_str):
-    """Helper function to parse a single date string with improved natural language support"""
-    # ... (keep the original implementation)
+    """Enhanced date parsing with support for DD/MM format, written dates, ordinal numbers, and misspellings"""
+    if not date_str:
+        return None
+    
     # Clean the date string
     date_str = date_str.strip().lower()
     
@@ -277,25 +278,44 @@ def parse_single_date(date_str):
         if key in date_str:
             return value.strftime('%Y-%m-%d')
     
-    # Month names mapping
+    # Enhanced month names mapping with common misspellings
     months = {
-        'january': 1, 'jan': 1,
-        'february': 2, 'feb': 2,
+        'january': 1, 'jan': 1, 'janu': 1,
+        'february': 2, 'feb': 2, 'febru': 2,
         'march': 3, 'mar': 3,
         'april': 4, 'apr': 4,
         'may': 5,
         'june': 6, 'jun': 6,
         'july': 7, 'jul': 7,
-        'august': 8, 'aug': 8,
+        'august': 8, 'aug': 8, 'agust': 8,  # Common misspelling
         'september': 9, 'sep': 9, 'sept': 9,
         'october': 10, 'oct': 10,
         'november': 11, 'nov': 11,
         'december': 12, 'dec': 12
     }
     
-    # Try to extract month name and day
+    # Try DD/MM format first (always assume DD/MM, not MM/DD)
+    dd_mm_pattern = r'^(\d{1,2})[/-](\d{1,2})(?:[/-](\d{2,4}))?$'
+    match = re.match(dd_mm_pattern, date_str)
+    if match:
+        day, month, year = match.groups()
+        day, month = int(day), int(month)
+        year = int(year) if year else current_year
+        if len(str(year)) == 2:  # Convert 2-digit year to 4-digit
+            year = 2000 + year if year < 50 else 1900 + year
+        
+        try:
+            parsed_date = datetime(year, month, day)
+            # If date is in the past for current year, assume next year
+            if parsed_date < today and year == current_year:
+                parsed_date = datetime(year + 1, month, day)
+            return parsed_date.strftime('%Y-%m-%d')
+        except ValueError:
+            pass
+    
+    # Try written month formats
     for month_name, month_num in months.items():
-        # Pattern for "June 11", "11 June", "June 11, 2024"
+        # Pattern for "June 11", "11 June", "June 11, 2024", "11th June", "June 11th"
         patterns = [
             rf'{month_name}\s+(\d{{1,2}})(?:\s*,?\s*(\d{{4}}))?',  # June 11 or June 11, 2024
             rf'(\d{{1,2}})\s+{month_name}(?:\s*,?\s*(\d{{4}}))?',  # 11 June or 11 June 2024
@@ -313,19 +333,18 @@ def parse_single_date(date_str):
                     year = int(groups[1]) if groups[1] else current_year
                 
                 try:
-                    # If the date is in the past for current year, assume next year
                     parsed_date = datetime(year, month_num, day)
+                    # If the date is in the past for current year, assume next year
                     if parsed_date < today and year == current_year:
                         parsed_date = datetime(year + 1, month_num, day)
                     return parsed_date.strftime('%Y-%m-%d')
                 except ValueError:
                     continue
     
-    # Try standard date formats
+    # Try other standard formats as fallback
     formats = [
-        '%m/%d/%Y', '%m-%d-%Y', '%m/%d/%y', '%m-%d-%y',
-        '%m/%d', '%m-%d', '%d/%m/%Y', '%d-%m-%Y',
-        '%d/%m', '%d-%m', '%Y-%m-%d', '%Y/%m/%d'
+        '%Y-%m-%d', '%Y/%m/%d', '%d-%m-%Y', '%d/%m/%Y',
+        '%m-%d-%Y', '%m/%d/%Y', '%d-%m-%y', '%d/%m/%y'
     ]
     
     for fmt in formats:
@@ -343,10 +362,9 @@ def parse_single_date(date_str):
     
     return None
 
-# ... (keep all other functions unchanged)
 def parse_time_off_details(query):
     """
-    Try to extract time-off details from the query with improved date parsing (Arabic + English)
+    Enhanced time-off details parsing with improved date range detection
     """
     details: dict[str, Optional[str]] = {
         'leave_type': None,
@@ -357,6 +375,7 @@ def parse_time_off_details(query):
     }
     query_lower = query.lower()
     debug_log = {'input': query, 'steps': []}
+    
     # Arabic leave type mapping
     arabic_leave_types = {
         'سنوية': 'annual', 'إجازة سنوية': 'annual', 'اجازة سنوية': 'annual',
@@ -365,11 +384,13 @@ def parse_time_off_details(query):
         'شخصية': 'personal', 'إجازة شخصية': 'personal', 'اجازة شخصية': 'personal',
         'عارضة': 'casual', 'إجازة عارضة': 'casual', 'اجازة عارضة': 'casual',
     }
+    
     for ar, en in arabic_leave_types.items():
         if ar in query:
             details['leave_type'] = en
             debug_log['steps'].append({'arabic_leave_type': en})
             break
+    
     if not details['leave_type']:
         if 'sick' in query_lower:
             details['leave_type'] = 'sick'
@@ -379,6 +400,8 @@ def parse_time_off_details(query):
             details['leave_type'] = 'personal'
         elif 'unpaid' in query_lower:
             details['leave_type'] = 'unpaid'
+    
+    # Handle Arabic dates
     is_arabic = any('\u0600' <= c <= '\u06FF' for c in query)
     if is_arabic:
         date = parse_arabic_date(query)
@@ -389,36 +412,43 @@ def parse_time_off_details(query):
             st.session_state.debug_info['date_parsing'] = debug_log
             return details
         query = convert_arabic_numerals(query)
-    text_for_parsing = re.sub(r'(\d+)(st|nd|rd|th)', r'\1', query_lower)
-
-    # Improved date range regex: handles 'from June 29 to 30', 'from 29/6 to 30/6', 'June 29th till the 30th', etc.
+    
+    # Enhanced date range patterns
     date_range_patterns = [
-        # from June 29 to 30, from June 29th till the 30th
-        r'(?:from\s+)?(\w+\s+\d{1,2})(?:st|nd|rd|th)?\s*(?:to|till|until|through|-|–)\s*(?:the\s+)?(\d{1,2})(?:st|nd|rd|th)?',
-        # from 29/6 to 30/6 or 29-6 to 30-6
-        r'(?:from\s+)?(\d{1,2}[/-]\d{1,2}(?:[/-]\d{2,4})?)\s*(?:to|till|until|through|-|–)\s*(\d{1,2}[/-]\d{1,2}(?:[/-]\d{2,4})?)',
-        # June 29 to June 30
-        r'(?:from\s+)?(\w+\s+\d{1,2})(?:st|nd|rd|th)?\s*(?:to|till|until|through|-|–)\s*(\w+\s+\d{1,2})(?:st|nd|rd|th)?',
-        # 29 June to 30 June
-        r'(?:from\s+)?(\d{1,2}\s+\w+)(?:st|nd|rd|th)?\s*(?:to|till|until|through|-|–)\s*(\d{1,2}\s+\w+)(?:st|nd|rd|th)?',
-        # 29/6 to 30
-        r'(?:from\s+)?(\d{1,2}[/-]\d{1,2})(?:[/-]\d{2,4})?\s*(?:to|till|until|through|-|–)\s*(\d{1,2})(?:st|nd|rd|th)?',
+        # DD/MM to DD/MM format (e.g., "20/7 to 21/7", "20-7 to 21-7")
+        r'(?:from\s+)?(\d{1,2}[/-]\d{1,2})\s*(?:to|till|until|through|-|–)\s*(\d{1,2}[/-]\d{1,2})',
+        
+        # Written month formats (e.g., "august 2nd till august 9th", "august 2 to august 9")
+        r'(?:from\s+)?(\w+\s+\d{1,2}(?:st|nd|rd|th)?)\s*(?:to|till|until|through|-|–)\s*(\w+\s+\d{1,2}(?:st|nd|rd|th)?)',
+        
+        # Mixed formats (e.g., "august 2nd to 9th", "20/7 to august 9th")
+        r'(?:from\s+)?(\w+\s+\d{1,2}(?:st|nd|rd|th)?)\s*(?:to|till|until|through|-|–)\s*(\d{1,2}(?:st|nd|rd|th)?)',
+        r'(?:from\s+)?(\d{1,2}[/-]\d{1,2})\s*(?:to|till|until|through|-|–)\s*(\w+\s+\d{1,2}(?:st|nd|rd|th)?)',
+        
+        # Day only ranges (e.g., "2nd to 9th august", "20 to 21 july")
+        r'(?:from\s+)?(\d{1,2}(?:st|nd|rd|th)?)\s*(?:to|till|until|through|-|–)\s*(\d{1,2}(?:st|nd|rd|th)?)\s+(\w+)',
     ]
+    
     for pattern in date_range_patterns:
-        match = re.search(pattern, text_for_parsing, re.IGNORECASE)
+        match = re.search(pattern, query_lower, re.IGNORECASE)
         if match:
-            date_from_str = match.group(1).strip()
-            date_to_str = match.group(2).strip()
+            groups = match.groups()
+            date_from_str = groups[0].strip()
+            date_to_str = groups[1].strip()
+            
+            # Handle day-only ranges (e.g., "2nd to 9th august")
+            if len(groups) == 3 and groups[2]:
+                month = groups[2].strip()
+                date_from_str = f"{date_from_str} {month}"
+                date_to_str = f"{date_to_str} {month}"
+            
             debug_log['steps'].append({'matched_pattern': pattern, 'groups': [date_from_str, date_to_str]})
-            # If the second date is just a day, try to infer the month from the first
-            if re.match(r'^\d{1,2}$', date_to_str):
-                month_match = re.search(r'(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|sept|oct|nov|dec)', date_from_str, re.IGNORECASE)
-                if month_match:
-                    month = month_match.group(1)
-                    date_to_str = f"{date_to_str} {month}"
+            
             parsed_from = parse_single_date(date_from_str)
             parsed_to = parse_single_date(date_to_str)
+            
             debug_log['steps'].append({'parsed_from': parsed_from, 'parsed_to': parsed_to})
+            
             if parsed_from and parsed_to:
                 details['date_from'] = parsed_from
                 details['date_to'] = parsed_to
@@ -426,76 +456,26 @@ def parse_time_off_details(query):
                 return details
             else:
                 debug_log['steps'].append({'range_parse_failed': True})
-    # Fallback to original range pattern
-    date_range_pattern = r'(?:from\s+)?(\d{1,2}(?:\s+of)?\s+(?:january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|sept|oct|nov|dec)|(?:january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|sept|oct|nov|dec)\s+\d{1,2}|\d{1,2}/\d{1,2}(?:/\d{2,4})?)\s+(?:to|till|until|through|-|–)\s+(?:the\s+)?(\d{1,2}(?:\s+of)?\s*(?:january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|sept|oct|nov|dec)?|(?:january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|sept|oct|nov|dec)\s+\d{1,2}|\d{1,2}/\d{1,2}(?:/\d{2,4})?)'
-    match = re.search(date_range_pattern, text_for_parsing, re.IGNORECASE)
-    if match:
-        date_from_str = match.group(1).strip()
-        date_to_str = match.group(2).strip()
-        date_from_str = date_from_str.replace(' of ', ' ')
-        date_to_str = date_to_str.replace(' of ', ' ')
-        if re.match(r'^\d{1,2}$', date_to_str):
-            month_match = re.search(r'(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|sept|oct|nov|dec)', date_from_str, re.IGNORECASE)
-            if month_match:
-                month = month_match.group(1)
-                date_to_str = f"{date_to_str} {month}"
-        parsed_from = parse_single_date(date_from_str)
-        parsed_to = parse_single_date(date_to_str)
-        debug_log['steps'].append({'fallback_range': [date_from_str, date_to_str], 'parsed_from': parsed_from, 'parsed_to': parsed_to})
-        if parsed_from and parsed_to:
-            details['date_from'] = parsed_from
-            details['date_to'] = parsed_to
-            st.session_state.debug_info['date_parsing'] = debug_log
-            return details
-        else:
-            debug_log['steps'].append({'fallback_range_parse_failed': True})
-    # Duration pattern
-    duration_match = re.search(r'(\d+)\s*days?\s*(?:starting|from|beginning)?\s*(.+?)(?:\.|,|$)', text_for_parsing)
-    if duration_match:
-        days = int(duration_match.group(1))
-        start_date_str = duration_match.group(2).strip()
-        parsed_start = parse_single_date(start_date_str)
-        debug_log['steps'].append({'duration': days, 'start_date_str': start_date_str, 'parsed_start': parsed_start})
-        if parsed_start:
-            details['date_from'] = parsed_start
-            start_dt = datetime.strptime(parsed_start, '%Y-%m-%d')
-            end_dt = start_dt + timedelta(days=days - 1)
-            details['date_to'] = end_dt.strftime('%Y-%m-%d')
-            st.session_state.debug_info['date_parsing'] = debug_log
-            return details
-    # Single date: tomorrow, today, etc.
-    if 'tomorrow' in text_for_parsing:
-        tomorrow = datetime.now() + timedelta(days=1)
-        details['date_from'] = tomorrow.strftime('%Y-%m-%d')
-        details['date_to'] = details['date_from']
-        debug_log['steps'].append({'single_date': 'tomorrow', 'parsed': details['date_from']})
-        st.session_state.debug_info['date_parsing'] = debug_log
-        return details
-    elif 'today' in text_for_parsing:
-        today = datetime.now()
-        details['date_from'] = today.strftime('%Y-%m-%d')
-        details['date_to'] = details['date_from']
-        debug_log['steps'].append({'single_date': 'today', 'parsed': details['date_from']})
-        st.session_state.debug_info['date_parsing'] = debug_log
-        return details
-    # Single month + day
-    single_date_match = re.search(r'(\d{1,2})\s+(?:of\s+)?(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|sept|oct|nov|dec)|(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|sept|oct|nov|dec)\s+(\d{1,2})', text_for_parsing, re.IGNORECASE)
-    if single_date_match:
-        date_str = single_date_match.group(0).replace(' of ', ' ')
-        parsed_date = parse_single_date(date_str)
-        debug_log['steps'].append({'single_date_match': date_str, 'parsed': parsed_date})
-        if parsed_date:
-            details['date_from'] = parsed_date
-            details['date_to'] = parsed_date
-            duration_after = re.search(r'for\s+(\d+)\s*days?', text_for_parsing[single_date_match.end():])
-            if duration_after:
-                days = int(duration_after.group(1))
-                from_dt = datetime.strptime(parsed_date, '%Y-%m-%d')
-                to_dt = from_dt + timedelta(days=days - 1)
-                details['date_to'] = to_dt.strftime('%Y-%m-%d')
-            st.session_state.debug_info['date_parsing'] = debug_log
-            return details
-    debug_log['steps'].append({'parse_failed': True})
+    
+    # Single date fallback
+    single_date_patterns = [
+        r'(\d{1,2}[/-]\d{1,2}(?:[/-]\d{2,4})?)',  # DD/MM or DD/MM/YYYY
+        r'(\w+\s+\d{1,2}(?:st|nd|rd|th)?)',  # Month Day
+        r'(\d{1,2}(?:st|nd|rd|th)?\s+\w+)',  # Day Month
+    ]
+    
+    for pattern in single_date_patterns:
+        match = re.search(pattern, query_lower, re.IGNORECASE)
+        if match:
+            date_str = match.group(1).strip()
+            parsed_date = parse_single_date(date_str)
+            if parsed_date:
+                details['date_from'] = parsed_date
+                details['date_to'] = parsed_date
+                debug_log['steps'].append({'single_date': parsed_date})
+                st.session_state.debug_info['date_parsing'] = debug_log
+                return details
+    
     st.session_state.debug_info['date_parsing'] = debug_log
     return details
 
