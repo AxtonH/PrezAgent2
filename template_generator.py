@@ -32,6 +32,16 @@ TEMPLATE_OPTIONS = {
         "name": "Experience letter",
         "path": str(TEMPLATES_DIR / "Experience Letter.docx"),
         "description": "Experience certificate for former employees"
+    },
+    "experience_letter_male": {
+        "name": "Experience letter - Male",
+        "path": str(TEMPLATES_DIR / "Experience Letter - Male.docx"),
+        "description": "Experience certificate for male former employees"
+    },
+    "experience_letter_female": {
+        "name": "Experience letter - Female",
+        "path": str(TEMPLATES_DIR / "Experience Letter - Female.docx"),
+        "description": "Experience certificate for female former employees"
     }
 }
 
@@ -487,6 +497,23 @@ def get_gendered_template_path(template_type: str, gender: str) -> Optional[str]
     base_name = base_path.stem
     ext = base_path.suffix
     gender = (gender or '').lower()
+    
+    # Handle experience letter templates
+    if template_type == 'experience_letter':
+        if gender in ['male', 'female']:
+            gendered_name = f"Experience Letter - {gender.capitalize()}{ext}"
+            gendered_path = base_path.parent / gendered_name
+            if gendered_path.exists():
+                return str(gendered_path)
+        # fallback to generic experience letter
+        generic_name = f"Experience Letter{ext}"
+        generic_path = base_path.parent / generic_name
+        if generic_path.exists():
+            return str(generic_path)
+        # final fallback to whatever is in TEMPLATE_OPTIONS
+        return str(base_path)
+    
+    # Handle employment letter templates (Arabic and English)
     # Arabic version
     if 'arabic' in base_name.lower():
         if gender in ['male', 'female']:
@@ -507,7 +534,7 @@ def get_gendered_template_path(template_type: str, gender: str) -> Optional[str]
             if gendered_path.exists():
                 return str(gendered_path)
         # fallback
-        generic_name = f"Employment Letter {ext}"
+        generic_name = f"Employment Letter{ext}"
         generic_path = base_path.parent / generic_name
         if generic_path.exists():
             return str(generic_path)
