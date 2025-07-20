@@ -413,6 +413,25 @@ def parse_time_off_details(query):
             return details
         query = convert_arabic_numerals(query)
     
+    # First, check for single relative dates (tomorrow, today, etc.)
+    single_relative_patterns = [
+        r'\b(tomorrow|today|yesterday)\b',
+        r'\b(next\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday))\b',
+        r'\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b'
+    ]
+    
+    for pattern in single_relative_patterns:
+        match = re.search(pattern, query_lower, re.IGNORECASE)
+        if match:
+            date_str = match.group(1).strip()
+            parsed_date = parse_single_date(date_str)
+            if parsed_date:
+                details['date_from'] = parsed_date
+                details['date_to'] = parsed_date
+                debug_log['steps'].append({'single_relative_date': parsed_date})
+                st.session_state.debug_info['date_parsing'] = debug_log
+                return details
+    
     # Enhanced date range patterns
     date_range_patterns = [
         # DD/MM to DD/MM format (e.g., "20/7 to 21/7", "20-7 to 21-7")
@@ -945,23 +964,4 @@ def detect_leave_balance_intent(query):
         if re.search(pat, query_lower):
             return True
     # Fuzzy matching for very flexible queries
-    for k in balance_keywords:
-        if fuzz.partial_ratio(k, query_lower) > 80:
-            return True
-    return False
-
-from odoo_connector import get_employee_leave_data
-
-def format_leave_balance(employee_data):
-    """
-    Fetch and format the user's leave balances for display.
-    """
-    employee_id = employee_data.get('id')
-    leave_data = get_employee_leave_data(employee_id)
-    summary = leave_data.get('summary', {})
-    if not summary:
-        return "I couldn't find any leave balance data for you. Please contact HR."
-    lines = ["**Your Leave Balances:**\n"]
-    for leave_type, info in summary.items():
-        lines.append(f"- **{leave_type}**: {info['balance']} days available (Allocated: {info['allocated']}, Taken: {info['taken']}, Requested: {info['requested']})")
-    return "\n".join(lines)
+    for k in balance_keywor
