@@ -5,7 +5,8 @@ from datetime import datetime, timedelta
 import openai
 from config import OPENAI_API_KEY, OPENAI_MODEL
 from odoo_connector import (
-    get_available_leave_types, create_time_off_request, get_employee_leave_balance
+    get_available_leave_types, create_time_off_request, get_employee_leave_balance,
+    get_employee_leave_data
 )
 from template_generator import (
     detect_template_intent, parse_embassy_details, generate_template,
@@ -964,4 +965,21 @@ def detect_leave_balance_intent(query):
         if re.search(pat, query_lower):
             return True
     # Fuzzy matching for very flexible queries
-    for k in balance_keywor
+    for k in balance_keywords:
+        if fuzz.partial_ratio(k, query_lower) > 80:
+            return True
+    return False
+
+def format_leave_balance(employee_data):
+    """
+    Fetch and format the user's leave balances for display.
+    """
+    employee_id = employee_data.get('id')
+    leave_data = get_employee_leave_data(employee_id)
+    summary = leave_data.get('summary', {})
+    if not summary:
+        return "I couldn't find any leave balance data for you. Please contact HR."
+    lines = ["**Your Leave Balances:**\n"]
+    for leave_type, info in summary.items():
+        lines.append(f"- **{leave_type}**: {info['balance']} days available (Allocated: {info['allocated']}, Taken: {info['taken']}, Requested: {info['requested']})")
+    return "\n".join(lines)
