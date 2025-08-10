@@ -3,6 +3,7 @@ import streamlit as st
 from openai_helper import generate_ai_response
 from ui_components import render_chat_message
 import base64
+import time
 
 class ChatManager:
     def __init__(self):
@@ -74,6 +75,8 @@ class ChatManager:
                     else:
                         st.markdown(f'<div class="bot-bubble">{content}</div>', unsafe_allow_html=True)
 
+        # Add scroll target at the bottom of messages
+        st.markdown('<div id="chat-bottom" style="height: 1px;"></div>', unsafe_allow_html=True)
         st.markdown("<div style='margin-bottom:20px;'></div>", unsafe_allow_html=True)
 
         # 4️⃣  input
@@ -92,28 +95,9 @@ class ChatManager:
                 if reply is not None:
                     st.markdown(f'<div class="bot-bubble">{reply}</div>', unsafe_allow_html=True)
                     self.add_message("assistant", reply)
-                    
-                    # Add auto-scroll JavaScript
-                    st.markdown("""
-                    <script>
-                    setTimeout(function() {
-                        // Scroll to the bottom of the chat container
-                        var chatContainer = document.querySelector('[data-testid="stChatMessageContainer"]');
-                        if (chatContainer) {
-                            chatContainer.scrollTop = chatContainer.scrollHeight;
-                        }
-                        
-                        // Alternative: Scroll to the last message
-                        var lastMessage = document.querySelector('[data-testid="stChatMessageContainer"] > div:last-child');
-                        if (lastMessage) {
-                            lastMessage.scrollIntoView({ behavior: 'smooth', block: 'end' });
-                        }
-                        
-                        // Ensure the page scrolls to show the latest content
-                        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-                    }, 100);
-                    </script>
-                    """, unsafe_allow_html=True)
                 else:
                     st.rerun()
+        
+        # Add a bottom spacer that ensures the last message is visible
+        st.markdown('<div style="height: 80px; width: 100%;"></div>', unsafe_allow_html=True)
 
