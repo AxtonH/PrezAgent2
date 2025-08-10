@@ -106,29 +106,43 @@ class ChatManager:
             import streamlit.components.v1 as components
             components.html(f"""
             <script>
-            setTimeout(function() {{
-                // Access parent window (Streamlit's main window)
+            (function() {{
+              var attempts = 0;
+              function doScroll() {{
+                attempts += 1;
                 var parentDoc = parent.document;
                 
-                // Try multiple scroll targets
-                var targets = [
-                    parentDoc.querySelector('[data-testid="stChatMessageContainer"]'),
-                    parentDoc.querySelector('.main'),
-                    parentDoc.querySelector('section.main'),
-                    parentDoc.body
-                ];
+                // 1) Scroll the explicit anchor if present
+                var anchor = parentDoc.querySelector('#chat-bottom');
+                if (anchor && anchor.scrollIntoView) {{
+                  anchor.scrollIntoView({{ behavior: 'smooth', block: 'end' }});
+                }}
                 
-                targets.forEach(function(target) {{
-                    if (target) {{
-                        target.scrollTop = target.scrollHeight;
+                // 2) Also scroll the last chat message
+                var container = parentDoc.querySelector('[data-testid="stChatMessageContainer"]');
+                if (container) {{
+                  var children = container.querySelectorAll('[data-testid="stChatMessage"]');
+                  if (children && children.length) {{
+                    var last = children[children.length - 1];
+                    if (last && last.scrollIntoView) {{
+                      last.scrollIntoView({{ behavior: 'smooth', block: 'end' }});
                     }}
-                }});
+                  }} else {{
+                    // Fallback: force container scroll
+                    container.scrollTop = container.scrollHeight;
+                  }}
+                }}
                 
-                // Also scroll the window itself
+                // 3) Fallback to window scroll
                 parent.window.scrollTo(0, parentDoc.body.scrollHeight);
                 
-                console.log('Auto-scroll triggered for message #{len(st.session_state.messages)}');
-            }}, 300);
+                // Retry a few times to catch post-render updates
+                if (attempts < 5) {{
+                  setTimeout(doScroll, 200);
+                }}
+              }}
+              setTimeout(doScroll, 300);
+            }})();
             </script>
             """, height=0)
 
