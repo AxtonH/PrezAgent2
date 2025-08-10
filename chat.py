@@ -92,6 +92,28 @@ class ChatManager:
                 if reply is not None:
                     st.markdown(f'<div class="bot-bubble">{reply}</div>', unsafe_allow_html=True)
                     self.add_message("assistant", reply)
+                    
+                    # Add auto-scroll JavaScript
+                    st.markdown("""
+                    <script>
+                    setTimeout(function() {
+                        // Scroll to the bottom of the chat container
+                        var chatContainer = document.querySelector('[data-testid="stChatMessageContainer"]');
+                        if (chatContainer) {
+                            chatContainer.scrollTop = chatContainer.scrollHeight;
+                        }
+                        
+                        // Alternative: Scroll to the last message
+                        var lastMessage = document.querySelector('[data-testid="stChatMessageContainer"] > div:last-child');
+                        if (lastMessage) {
+                            lastMessage.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                        }
+                        
+                        // Ensure the page scrolls to show the latest content
+                        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                    }, 100);
+                    </script>
+                    """, unsafe_allow_html=True)
                 else:
                     st.rerun()
 
