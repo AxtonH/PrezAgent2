@@ -1,4 +1,4 @@
-﻿# app.py
+# app.py
 import streamlit as st
 from config import OPENAI_API_KEY, ODOO_URL, ODOO_DB
 from auth import AuthManager
@@ -129,6 +129,17 @@ st.markdown("""
     /* Add padding to bottom of main container for chat input */
     section.main {
         padding-bottom: 100px !important;
+    }
+    
+    /* Auto-scroll behavior for chat messages */
+    div[data-testid="stChatMessageContainer"] {
+        scroll-behavior: smooth !important;
+    }
+    
+    /* Ensure new messages are visible */
+    .bot-bubble:last-child,
+    .user-bubble:last-child {
+        margin-bottom: 20px !important;
     }
     
     /* Sidebar with semi-transparent background */
