@@ -100,4 +100,35 @@ class ChatManager:
         
         # Add a bottom spacer that ensures the last message is visible
         st.markdown('<div style="height: 80px; width: 100%;"></div>', unsafe_allow_html=True)
+        
+        # Force scroll using component that can execute JavaScript
+        if len(st.session_state.messages) > 0:
+            import streamlit.components.v1 as components
+            components.html(f"""
+            <script>
+            setTimeout(function() {{
+                // Access parent window (Streamlit's main window)
+                var parentDoc = parent.document;
+                
+                // Try multiple scroll targets
+                var targets = [
+                    parentDoc.querySelector('[data-testid="stChatMessageContainer"]'),
+                    parentDoc.querySelector('.main'),
+                    parentDoc.querySelector('section.main'),
+                    parentDoc.body
+                ];
+                
+                targets.forEach(function(target) {{
+                    if (target) {{
+                        target.scrollTop = target.scrollHeight;
+                    }}
+                }});
+                
+                // Also scroll the window itself
+                parent.window.scrollTo(0, parentDoc.body.scrollHeight);
+                
+                console.log('Auto-scroll triggered for message #{len(st.session_state.messages)}');
+            }}, 300);
+            </script>
+            """, height=0)
 
