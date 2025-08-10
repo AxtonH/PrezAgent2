@@ -128,7 +128,7 @@ st.markdown("""
     
     /* Add padding to bottom of main container for chat input */
     section.main {
-        padding-bottom: 100px !important;
+        padding-bottom: 180px !important;
     }
     
     /* Auto-scroll behavior for chat messages */
