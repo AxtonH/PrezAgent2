@@ -526,7 +526,6 @@ def parse_embassy_details(query: str) -> Dict[str, Any]:
                 break
     
     # Try to parse dates
-    import re
     from datetime import datetime, timedelta
     
     # Look for date patterns
