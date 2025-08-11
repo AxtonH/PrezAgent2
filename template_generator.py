@@ -567,6 +567,22 @@ def get_gendered_template_path(template_type: str, gender: str) -> Optional[str]
     ext = base_path.suffix
     gender = (gender or '').lower()
     
+    # Handle embassy letter templates
+    if template_type == 'employment_letter_embassy':
+        # Try gendered embassy templates first
+        if gender in ['male', 'female']:
+            gendered_name = f"Employment Letter to Embassies - {gender.capitalize()}{ext}"
+            gendered_path = base_path.parent / gendered_name
+            if gendered_path.exists():
+                return str(gendered_path)
+        # Fallback to generic embassy letter (if present)
+        generic_name = f"Employment Letter to Embassies{ext}"
+        generic_path = base_path.parent / generic_name
+        if generic_path.exists():
+            return str(generic_path)
+        # Final fallback: whatever path is in TEMPLATE_OPTIONS
+        return str(base_path)
+
     # Handle experience letter templates
     if template_type == 'experience_letter':
         if gender in ['male', 'female']:
@@ -595,7 +611,7 @@ def get_gendered_template_path(template_type: str, gender: str) -> Optional[str]
         generic_path = base_path.parent / generic_name
         if generic_path.exists():
             return str(generic_path)
-    # English version
+    # English version (employment letter standard)
     else:
         if gender in ['male', 'female']:
             gendered_name = f"Employment Letter - {gender.capitalize()}{ext}"
