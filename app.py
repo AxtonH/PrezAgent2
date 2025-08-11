@@ -109,31 +109,32 @@ st.markdown("""
         flex: 1 1 auto;
     }
     
-    /* Chat input styling - switch to sticky so page can naturally scroll to bottom */
+    /* Chat input styling - fixed at bottom */
     div[data-testid="stChatInput"] {
-        position: sticky !important;
-        bottom: 0 !important;
-        left: unset !important;
-        transform: none !important;
-        width: 100% !important;
-        max-width: 100% !important;
+        position: fixed !important;
+        bottom: 20px !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        width: calc(100% - 40px) !important;
+        max-width: 900px !important;
         background-color: rgba(255, 255, 255, 0.95) !important;
         backdrop-filter: blur(10px) !important;
         border: 1px solid #D4B5F7 !important;
-        border-radius: 0 !important;
-        box-shadow: 0 -4px 12px rgba(155, 109, 214, 0.12) !important;
-        padding: 6px 10px !important;
-        z-index: 5 !important;
+        border-radius: 24px !important;
+        box-shadow: 0 2px 8px rgba(155, 109, 214, 0.15) !important;
+        padding: 4px !important;
+        z-index: 999 !important;
     }
     
-    /* Extra bottom space is no longer necessary with sticky input */
+    /* Add padding to bottom of main container for chat input */
     section.main {
-        padding-bottom: 32px !important;
+        padding-bottom: 100px !important;
     }
     
-    /* Auto-scroll behavior for chat messages */
+    /* Auto-scroll behavior and bottom padding inside chat list */
     div[data-testid="stChatMessageContainer"] {
         scroll-behavior: smooth !important;
+        padding-bottom: 220px !important; /* ensure last message not under fixed input */
     }
     
     /* Ensure new messages are visible */
