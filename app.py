@@ -109,26 +109,26 @@ st.markdown("""
         flex: 1 1 auto;
     }
     
-    /* Chat input styling */
+    /* Chat input styling - switch to sticky so page can naturally scroll to bottom */
     div[data-testid="stChatInput"] {
-        position: fixed !important;
-        bottom: 20px !important;
-        left: 50% !important;
-        transform: translateX(-50%) !important;
-        width: calc(100% - 40px) !important;
-        max-width: 900px !important;
+        position: sticky !important;
+        bottom: 0 !important;
+        left: unset !important;
+        transform: none !important;
+        width: 100% !important;
+        max-width: 100% !important;
         background-color: rgba(255, 255, 255, 0.95) !important;
         backdrop-filter: blur(10px) !important;
         border: 1px solid #D4B5F7 !important;
-        border-radius: 24px !important;
-        box-shadow: 0 2px 8px rgba(155, 109, 214, 0.15) !important;
-        padding: 4px !important;
-        z-index: 999 !important;
+        border-radius: 0 !important;
+        box-shadow: 0 -4px 12px rgba(155, 109, 214, 0.12) !important;
+        padding: 6px 10px !important;
+        z-index: 5 !important;
     }
     
-    /* Add padding to bottom of main container for chat input */
+    /* Extra bottom space is no longer necessary with sticky input */
     section.main {
-        padding-bottom: 180px !important;
+        padding-bottom: 32px !important;
     }
     
     /* Auto-scroll behavior for chat messages */
