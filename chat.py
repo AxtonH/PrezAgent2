@@ -98,8 +98,8 @@ class ChatManager:
                 else:
                     st.rerun()
         
-        # Add a bottom spacer that ensures the last message is visible
-        st.markdown('<div style="height: 80px; width: 100%;"></div>', unsafe_allow_html=True)
+        # Add a bottom spacer that ensures the last message is visible above fixed input
+        st.markdown('<div style="height: 220px; width: 100%;"></div>', unsafe_allow_html=True)
         
         # Force scroll using component that can execute JavaScript
         if len(st.session_state.messages) > 0:
@@ -116,6 +116,8 @@ class ChatManager:
                 var anchor = parentDoc.querySelector('#chat-bottom');
                 if (anchor && anchor.scrollIntoView) {{
                   anchor.scrollIntoView({{ behavior: 'smooth', block: 'end' }});
+                  // Nudge past the fixed input overlay
+                  setTimeout(function() {{ parent.window.scrollBy(0, 300); }}, 60);
                 }}
                 
                 // 2) Also scroll the last chat message
@@ -126,22 +128,23 @@ class ChatManager:
                     var last = children[children.length - 1];
                     if (last && last.scrollIntoView) {{
                       last.scrollIntoView({{ behavior: 'smooth', block: 'end' }});
+                      setTimeout(function() {{ parent.window.scrollBy(0, 300); }}, 80);
                     }}
                   }} else {{
                     // Fallback: force container scroll
-                    container.scrollTop = container.scrollHeight;
+                    container.scrollTop = container.scrollHeight + 600;
                   }}
                 }}
                 
                 // 3) Fallback to window scroll
-                parent.window.scrollTo(0, parentDoc.body.scrollHeight);
+                parent.window.scrollTo(0, parentDoc.body.scrollHeight + 600);
                 
                 // Retry a few times to catch post-render updates
-                if (attempts < 5) {{
-                  setTimeout(doScroll, 200);
+                if (attempts < 8) {{
+                  setTimeout(doScroll, 250);
                 }}
               }}
-              setTimeout(doScroll, 300);
+              setTimeout(doScroll, 400);
             }})();
             </script>
             """, height=0)
