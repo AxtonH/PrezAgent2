@@ -264,11 +264,11 @@ def enrich_employee_data_for_template(employee_data: Dict[str, Any], models: xml
         
         additional_data = models.execute_kw(
             db, uid, password, 'hr.employee', 'read',
-            [employee_id], {'fields': additional_fields}
+            [[employee_id]], {'fields': additional_fields}
         )
         
         if additional_data:
-            employee_data.update(additional_data[0])
+            enriched_data.update(additional_data[0])
     except:
         pass
     
@@ -311,8 +311,8 @@ def enrich_employee_data_for_template(employee_data: Dict[str, Any], models: xml
     else:
         enriched_data['department'] = str(department_field) if department_field else ''
     
-    # Get Arabic name
-    enriched_data['arabic_name'] = get_arabic_name(employee_data)
+    # Get Arabic name (prefer x_studio_employee_arabic_name if available)
+    enriched_data['arabic_name'] = get_arabic_name(enriched_data)
     
     # Get company information
     company_field = employee_data.get("company_id")
