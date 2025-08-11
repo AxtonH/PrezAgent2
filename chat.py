@@ -99,7 +99,7 @@ class ChatManager:
                     st.rerun()
         
         # Add a bottom spacer that ensures the last message is visible above fixed input
-        st.markdown('<div style="height: 220px; width: 100%;"></div>', unsafe_allow_html=True)
+        st.markdown('<div id="scroll-anchor-bottom" style="height: 260px; width: 100%;"></div>', unsafe_allow_html=True)
         
         # Force scroll using component that can execute JavaScript
         if len(st.session_state.messages) > 0:
@@ -113,11 +113,11 @@ class ChatManager:
                 var parentDoc = parent.document;
                 
                 // 1) Scroll the explicit anchor if present
-                var anchor = parentDoc.querySelector('#chat-bottom');
+                var anchor = parentDoc.querySelector('#scroll-anchor-bottom') || parentDoc.querySelector('#chat-bottom');
                 if (anchor && anchor.scrollIntoView) {{
                   anchor.scrollIntoView({{ behavior: 'smooth', block: 'end' }});
                   // Nudge past the fixed input overlay
-                  setTimeout(function() {{ parent.window.scrollBy(0, 300); }}, 60);
+                  setTimeout(function() {{ parent.window.scrollBy(0, 420); }}, 80);
                 }}
                 
                 // 2) Also scroll the last chat message
@@ -127,24 +127,24 @@ class ChatManager:
                   if (children && children.length) {{
                     var last = children[children.length - 1];
                     if (last && last.scrollIntoView) {{
-                      last.scrollIntoView({{ behavior: 'smooth', block: 'end' }});
-                      setTimeout(function() {{ parent.window.scrollBy(0, 300); }}, 80);
+                      last.scrollIntoView({{ behavior: 'smooth', block: 'nearest' }});
+                      setTimeout(function() {{ parent.window.scrollBy(0, 420); }}, 100);
                     }}
                   }} else {{
                     // Fallback: force container scroll
-                    container.scrollTop = container.scrollHeight + 600;
+                    container.scrollTop = container.scrollHeight + 800;
                   }}
                 }}
                 
                 // 3) Fallback to window scroll
-                parent.window.scrollTo(0, parentDoc.body.scrollHeight + 600);
+                parent.window.scrollTo(0, parentDoc.body.scrollHeight + 800);
                 
                 // Retry a few times to catch post-render updates
-                if (attempts < 8) {{
-                  setTimeout(doScroll, 250);
+                if (attempts < 10) {{
+                  setTimeout(doScroll, 300);
                 }}
               }}
-              setTimeout(doScroll, 400);
+              setTimeout(doScroll, 500);
             }})();
             </script>
             """, height=0)
