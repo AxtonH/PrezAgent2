@@ -9,6 +9,7 @@ from docx.oxml.ns import qn
 from docx.shared import Pt
 import os
 from pathlib import Path
+import re
 
 # Template configuration - using relative paths with pathlib
 TEMPLATES_DIR = Path(__file__).parent / "templates"
@@ -77,6 +78,70 @@ COUNTRIES = [
     "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Venezuela", "Vietnam", "Yemen",
     "Zambia", "Zimbabwe"
 ]
+
+# Country normalization: map common abbreviations/nicknames/alt spellings to official names
+# Note: We deliberately avoid mapping geographic regions (e.g., "South America") to a country.
+COUNTRY_ALIAS_PATTERNS: list[tuple[re.Pattern, str]] = [
+    # United States of America
+    (re.compile(r"\b(u\.\s?s\.\s?a\.?|u\.\s?s\.?|usa|us|united\s+states(?:\s+of\s+america)?|the\s+states)\b", re.I), "United States"),
+    # Avoid mapping 'south america' / 'north america' to USA
+    (re.compile(r"(?<!south\s)(?<!north\s)\bamerica\b", re.I), "United States"),
+
+    # United Kingdom
+    (re.compile(r"\b(uk|u\.\s?k\.?|united\s+kingdom|great\s+britain|britain|england|scotland|wales|northern\s+ireland)\b", re.I), "United Kingdom"),
+
+    # United Arab Emirates
+    (re.compile(r"\b(uae|u\.\s?a\.\s?e\.?|united\s+arab\s+emirates)\b", re.I), "United Arab Emirates"),
+
+    # Saudi Arabia
+    (re.compile(r"\b(ksa|kingdom\s+of\s+saudi\s+arabia|saudi\s+arabia|saudi)\b", re.I), "Saudi Arabia"),
+
+    # South Korea / Republic of Korea
+    (re.compile(r"\b(south\s+korea|republic\s+of\s+korea|rok)\b", re.I), "South Korea"),
+    # North Korea
+    (re.compile(r"\b(north\s+korea|dprk|democratic\s+people'?s?\s+republic\s+of\s+korea)\b", re.I), "North Korea"),
+
+    # Russia
+    (re.compile(r"\b(russian\s+federation|russia)\b", re.I), "Russia"),
+
+    # Iran
+    (re.compile(r"\b(islamic\s+republic\s+of\s+iran|iran)\b", re.I), "Iran"),
+
+    # Czech Republic (Czechia handling)
+    (re.compile(r"\b(czechia|czech\s+republic)\b", re.I), "Czech Republic"),
+
+    # United Republics variants not strictly needed but helpful
+    (re.compile(r"\b(turkiye|turkey)\b", re.I), "Turkey"),
+]
+
+def normalize_country_from_text(query: str) -> str | None:
+    """Try to normalize a country mention in free text to a COUNTRIES entry.
+
+    1) Use alias patterns for common abbreviations/nicknames.
+    2) Fallback to exact country presence using word-boundaries.
+    3) Return None if nothing reliable is found.
+    """
+    text = (query or "").strip()
+    if not text:
+        return None
+
+    # First pass: alias/nickname regex patterns
+    for pattern, official in COUNTRY_ALIAS_PATTERNS:
+        if pattern.search(text):
+            # Prefer exact name found in COUNTRIES if available
+            if official in COUNTRIES:
+                return official
+            return official
+
+    # Second pass: exact country names (word boundary match, case-insensitive)
+    text_lower = text.lower()
+    for ctry in COUNTRIES:
+        name = ctry.lower()
+        # Use word boundaries to avoid partial matches (e.g., 'oman' in 'roman')
+        if re.search(rf"\b{name}\b", text_lower, re.I):
+            return ctry
+
+    return None
 
 def get_arabic_name(employee: Dict[str, Any]) -> str:
     """Get the Arabic name of the employee"""
@@ -448,12 +513,17 @@ def parse_embassy_details(query: str) -> Dict[str, Any]:
     }
     
     query_lower = query.lower()
-    
-    # Try to find country
-    for country in COUNTRIES:
-        if country.lower() in query_lower:
-            details['country'] = country
-            break
+
+    # Try to normalize country from aliases and exact names
+    normalized = normalize_country_from_text(query)
+    if normalized:
+        details['country'] = normalized
+    else:
+        # legacy fallback (substring) with safer boundary matching
+        for country in COUNTRIES:
+            if re.search(rf"\b{re.escape(country.lower())}\b", query_lower):
+                details['country'] = country
+                break
     
     # Try to parse dates
     import re
