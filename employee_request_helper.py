@@ -727,11 +727,21 @@ def handle_template_request(query, employee_data):
     Returns:
         Response message
     """
+    # Allow cancel/exit at any time (English/Arabic)
+    if detect_exit_intent_multilingual(query):
+        st.session_state.template_request = {}
+        st.session_state.active_workflow = None
+        return "✅ The process has been cancelled. How else can I help you?"
+
     # Check if we have pending template request in session
     if 'template_request' not in st.session_state:
         st.session_state.template_request = {}
     
     request_data = st.session_state.template_request
+
+    # Mark this as the active workflow to enable global cancel handling
+    if st.session_state.get('active_workflow') != 'template_request':
+        st.session_state.active_workflow = 'template_request'
     
     # Detect template type if not already set
     if not request_data.get('template_type'):
