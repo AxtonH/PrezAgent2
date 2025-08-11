@@ -528,7 +528,8 @@ def parse_embassy_details(query: str) -> Dict[str, Any]:
     # Try to parse dates
     from datetime import datetime, timedelta
     
-    # Look for date patterns
+    # Look for date patterns (DD/MM[/YYYY] or DD-MM[-YYYY])
+    # Groups: 1=day, 2=month, 3=optional year
     date_pattern = r'(\d{1,2})[/\-](\d{1,2})(?:[/\-](\d{2,4}))?'
     dates = re.findall(date_pattern, query)
     
@@ -537,7 +538,7 @@ def parse_embassy_details(query: str) -> Dict[str, Any]:
         parsed_dates = []
         
         for date_match in dates:
-            month, day, year = date_match
+            day, month, year = date_match
             if not year:
                 year = current_year
             elif len(year) == 2:
