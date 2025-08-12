@@ -143,7 +143,7 @@ st.markdown("""
   }
 
   /* Global tweaks */
-  #MainMenu, .stDeployButton { display: none !important; }
+  header, #MainMenu, .stDeployButton { display: none !important; }
 
   /* Floating sidebar toggle */
   #sb-toggle {
@@ -154,6 +154,8 @@ st.markdown("""
     box-shadow: 0 6px 18px rgba(31,27,45,.12);
   }
   #sb-toggle:hover { background: #fff; }
+  /* Temporarily hide the custom menu button */
+  #sb-toggle { display: none !important; }
 
 </style>
 """, unsafe_allow_html=True)
@@ -269,5 +271,4 @@ else:
         else:
             # Empty state
             render_empty_state(st.session_state.manual_search_mode)
-
 
