@@ -158,21 +158,28 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Handle sidebar toggle via query param (JS-free and reliable)
+params = {}
 try:
-    params = st.experimental_get_query_params()  # Deprecated but widely supported
+    params = dict(st.query_params)
 except Exception:
-    params = {}
+    try:
+        params = st.experimental_get_query_params()
+    except Exception:
+        params = {}
 
 if 'sb' in params:
-    value = params.get('sb', ['0'])[0]
+    raw_val = params.get('sb')
+    value = raw_val[0] if isinstance(raw_val, list) else str(raw_val)
     st.session_state.sidebar_hidden = (value == '1')
     # Clear param to keep URL clean
     try:
-        # Remove 'sb' while preserving others
-        cleaned = {k: v for k, v in params.items() if k != 'sb'}
-        st.experimental_set_query_params(**cleaned)
+        del st.query_params['sb']
     except Exception:
-        pass
+        try:
+            cleaned = {k: v for k, v in params.items() if k != 'sb'}
+            st.experimental_set_query_params(**cleaned)
+        except Exception:
+            pass
 
 # Conditionally hide sidebar via CSS (no JS needed)
 if st.session_state.sidebar_hidden:
@@ -194,7 +201,7 @@ next_sb = '0' if st.session_state.sidebar_hidden else '1'
 toggle_label = '☰ Menu'
 st.markdown(
     f"""
-    <a id="sb-toggle" href="?sb={next_sb}">{toggle_label}</a>
+    <a id="sb-toggle" href="?sb={next_sb}" target="_self" rel="noopener">{toggle_label}</a>
     """,
     unsafe_allow_html=True,
 )
