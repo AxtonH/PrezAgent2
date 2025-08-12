@@ -1,6 +1,5 @@
 # app.py
 import streamlit as st
-import streamlit.components.v1 as components
 from config import OPENAI_API_KEY, ODOO_URL, ODOO_DB
 from auth import AuthManager
 from ui_components import render_header, render_login_form, render_sidebar, render_empty_state
@@ -199,37 +198,7 @@ if st.session_state.sidebar_hidden:
         unsafe_allow_html=True,
     )
 
-# Floating sidebar toggle using a component (no page refresh)
-components.html(
-    """
-    <style>
-      #sb-toggle {
-        position: fixed; top: 16px; left: 16px; z-index: 10000;
-        background: #ffffffcc; backdrop-filter: blur(8px);
-        border: 1px solid rgba(111,87,232,.25); color: #6F57E8;
-        border-radius: 10px; padding: 6px 10px; font-size: 13px; cursor: pointer;
-        box-shadow: 0 6px 18px rgba(31,27,45,.12);
-      }
-      #sb-toggle:hover { background: #fff; }
-    </style>
-    <button id=\"sb-toggle\">☰ Menu</button>
-    <script>
-      (function(){
-        const btn = document.getElementById('sb-toggle');
-        if (!btn) return;
-        const send = (target, msg) => { try { target.postMessage(msg, '*'); } catch(e){} };
-        btn.addEventListener('click', () => {
-          const msgs = [
-            { isStreamlitMessage: true, type: 'streamlit:toggleSidebar' },
-            { isStreamlitMessage: true, command: 'toggleSidebar' }
-          ];
-          msgs.forEach(m => { send(window, m); if (window.parent && window.parent !== window) send(window.parent, m); });
-        });
-      })();
-    </script>
-    """,
-    height=60,
-)
+# Custom menu component removed per request
 
 # Main app logic
 if not st.session_state.logged_in:
