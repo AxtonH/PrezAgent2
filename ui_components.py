@@ -144,10 +144,12 @@ def render_login_form(login_callback, saved_credentials=None):
                 
                 st.markdown("<div style='margin-bottom: 1.5rem;'></div>", unsafe_allow_html=True)
                 
-                # Remember me checkbox with custom styling
-                remember_me = st.checkbox("Remember me", 
-                                        value=bool(saved_credentials),
-                                        help="Save your credentials for faster login next time")
+                # Remember me checkbox with custom styling (restored)
+                remember_me = st.checkbox(
+                    "Remember me",
+                    value=bool(saved_credentials),
+                    help="Save your credentials for faster login next time",
+                )
                 
                 st.markdown("<div style='margin-bottom: 1.5rem;'></div>", unsafe_allow_html=True)
                 
@@ -363,6 +365,4 @@ def render_search_result(found, name):
         st.markdown(f"""
         <div style="display: flex; align-items: center;">
             <div style="background-color: #FF6B6B; width: 8px; height: 8px; border-radius: 50%; margin-right: 8px;"></div>
-            <span style="color: var(--dark-purple); font-weight: 600;">Not found:</span> {name}
-        </div>
-        """, unsafe_allow_html=True)
+            <span style="color: var(
