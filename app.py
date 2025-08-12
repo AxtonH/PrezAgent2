@@ -132,7 +132,7 @@ st.markdown("""
   }
 
   /* Global tweaks */
-  header, #MainMenu, footer, .stDeployButton { display: none !important; }
+  #MainMenu, .stDeployButton { display: none !important; }
 
   /* Floating sidebar toggle */
   #sb-toggle {
