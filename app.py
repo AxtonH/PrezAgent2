@@ -130,6 +130,14 @@ st.markdown("""
     background: linear-gradient(180deg, #fbfbffcc, #ffffffcc) !important;
     backdrop-filter: blur(12px) !important;
     border-right: 1px solid rgba(111, 87, 232, .12) !important;
+    transition: transform .25s ease, opacity .25s ease;
+  }
+
+  /* Class-based sidebar hide (JS toggles .sb-hidden on <html>) */
+  .sb-hidden section[data-testid="stSidebar"] {
+    transform: translateX(-110%);
+    opacity: 0;
+    pointer-events: none;
   }
 
   /* Global tweaks */
@@ -153,13 +161,14 @@ st.markdown(
     """
     <button id="sb-toggle">☰ Menu</button>
     <script>
-      const btn = document.getElementById('sb-toggle');
-      if (btn) {
+      (function(){
+        const btn = document.getElementById('sb-toggle');
+        if (!btn) return;
         btn.addEventListener('click', () => {
-          // Streamlit listens for this message to toggle the sidebar
-          window.parent.postMessage({ type: 'streamlit:toggleSidebar' }, '*');
+          const el = window.parent?.document?.documentElement;
+          if (el) el.classList.toggle('sb-hidden');
         });
-      }
+      })();
     </script>
     """,
     unsafe_allow_html=True,
