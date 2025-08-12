@@ -232,7 +232,7 @@ def render_sidebar(username, is_manual_search_mode, logout_callback):
                 <div style="font-weight:600;color:var(--dark-purple);">{username}</div>
                 <div style="font-size:12px;color:#7a7590;">Online</div>
               </div>
-              <button onclick="parent.postMessage({{isStreamlitMessage: true, command: 'toggleSidebar'}}, '*')"
+              <button onclick="parent.postMessage({{ type: 'streamlit:toggleSidebar' }}, '*')"
                       style="border:1px solid rgba(111,87,232,.25);background:#fff;border-radius:10px;padding:6px 10px;font-size:12px;color:#5b44e1;cursor:pointer;">Hide</button>
             </div>
             <div style="height:1px;background:rgba(111,87,232,.15);margin:8px 0 14px 0"></div>
@@ -365,4 +365,6 @@ def render_search_result(found, name):
         st.markdown(f"""
         <div style="display: flex; align-items: center;">
             <div style="background-color: #FF6B6B; width: 8px; height: 8px; border-radius: 50%; margin-right: 8px;"></div>
-            <span style="color: var(
+            <span style="color: var(--dark-purple); font-weight: 600;">Not found:</span> {name}
+        </div>
+        """, unsafe_allow_html=True)
