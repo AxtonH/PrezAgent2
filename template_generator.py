@@ -387,12 +387,16 @@ def fill_template(template_path: str, employee_data: Dict[str, Any], is_arabic: 
         return None
     
     current_date = datetime.date.today().strftime("%d/%m/%Y")
+    arabic_full_name = enriched_data.get('arabic_name', '')
+    english_full_name = enriched_data.get('name', '') if 'name' in enriched_data else employee_data.get('name', '')
+    name_for_template = arabic_full_name if is_arabic and arabic_full_name else english_full_name
     
     # Define placeholders
     placeholders = {
         "(Current Date)": current_date,
-        "(First and Last Name)": employee_data.get('name', ''),
-        "(First Name)": employee_data.get('first_name', ''),
+        # For Arabic templates, also force the English placeholders to use the Arabic full name
+        "(First and Last Name)": name_for_template,
+        "(First Name)": name_for_template,
         "(Position)": employee_data.get('job_title', ''),
         "(Salary)": str(employee_data.get('wage', 0)),
         "(DD/MM/YYYY)": employee_data.get('joining_date', ''),
@@ -408,7 +412,7 @@ def fill_template(template_path: str, employee_data: Dict[str, Any], is_arabic: 
         "(CompanyA)": employee_data.get('company_arabic_name', ''),
         "(P&C)": employee_data.get('head_people_culture', ''),
         "(AP&C)": employee_data.get('head_people_culture_arabic', ''),
-        "(الاسم الكامل)": employee_data.get("arabic_name", employee_data.get('name', '')) if is_arabic else employee_data.get('name', ''),
+        "(الاسم الكامل)": name_for_template,
         "(بلد الوجهة)": employee_data.get('country', ''),
         "(تاريخ البداية)": employee_data.get('start_date', ''),
         "(تاريخ النهاية)": employee_data.get('end_date', ''),
