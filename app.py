@@ -64,7 +64,8 @@ st.markdown("""
     color: var(--text);
   }
 
-  .block-container { max-width: 1100px; }
+  /* Main content width ~75% of viewport on wide screens */
+  .block-container { max-width: 75vw; }
 
   /* Chat list */
   div[data-testid="stChatMessageContainer"] {
@@ -132,7 +133,7 @@ st.markdown("""
   }
 
   /* Global tweaks */
-  #MainMenu, .stDeployButton { display: none !important; }
+  header, #MainMenu, .stDeployButton { display: none !important; }
 
   /* Floating sidebar toggle */
   #sb-toggle {
