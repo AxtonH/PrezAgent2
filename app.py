@@ -134,8 +134,26 @@ st.markdown("""
   /* Global tweaks */
   header, #MainMenu, footer, .stDeployButton { display: none !important; }
 
+  /* Floating sidebar toggle */
+  #sb-toggle {
+    position: fixed; top: 16px; left: 16px; z-index: 10000;
+    background: #ffffffcc; backdrop-filter: blur(8px);
+    border: 1px solid rgba(111,87,232,.25); color: var(--primary);
+    border-radius: 10px; padding: 6px 10px; font-size: 13px; cursor: pointer;
+    box-shadow: 0 6px 18px rgba(31,27,45,.12);
+  }
+  #sb-toggle:hover { background: #fff; }
+
 </style>
 """, unsafe_allow_html=True)
+
+# Floating sidebar toggle (works even when header is hidden)
+st.markdown(
+    """
+    <button id="sb-toggle" onclick="parent.postMessage({isStreamlitMessage: true, command: 'toggleSidebar'}, '*')">☰ Menu</button>
+    """,
+    unsafe_allow_html=True,
+)
 
 # Main app logic
 if not st.session_state.logged_in:
