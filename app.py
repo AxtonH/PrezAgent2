@@ -143,7 +143,7 @@ st.markdown("""
   }
 
   /* Global tweaks */
-  header, #MainMenu, .stDeployButton { display: none !important; }
+  #MainMenu, .stDeployButton { display: none !important; }
 
   /* Floating sidebar toggle */
   #sb-toggle {
@@ -269,4 +269,5 @@ else:
         else:
             # Empty state
             render_empty_state(st.session_state.manual_search_mode)
+
 
