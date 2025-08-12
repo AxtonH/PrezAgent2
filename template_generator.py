@@ -387,8 +387,9 @@ def fill_template(template_path: str, employee_data: Dict[str, Any], is_arabic: 
         return None
     
     current_date = datetime.date.today().strftime("%d/%m/%Y")
-    arabic_full_name = enriched_data.get('arabic_name', '')
-    english_full_name = enriched_data.get('name', '') if 'name' in enriched_data else employee_data.get('name', '')
+    # Use the employee_data passed in (which is the already-enriched payload)
+    arabic_full_name = employee_data.get('arabic_name', '')
+    english_full_name = employee_data.get('name', '')
     name_for_template = arabic_full_name if is_arabic and arabic_full_name else english_full_name
     
     # Define placeholders
