@@ -150,7 +150,16 @@ st.markdown("""
 # Floating sidebar toggle (works even when header is hidden)
 st.markdown(
     """
-    <button id="sb-toggle" onclick="parent.postMessage({isStreamlitMessage: true, command: 'toggleSidebar'}, '*')">☰ Menu</button>
+    <button id="sb-toggle">☰ Menu</button>
+    <script>
+      const btn = document.getElementById('sb-toggle');
+      if (btn) {
+        btn.addEventListener('click', () => {
+          // Streamlit listens for this message to toggle the sidebar
+          window.parent.postMessage({ type: 'streamlit:toggleSidebar' }, '*');
+        });
+      }
+    </script>
     """,
     unsafe_allow_html=True,
 )
