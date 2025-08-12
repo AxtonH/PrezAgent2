@@ -1,4 +1,4 @@
-﻿# ui_components.py
+# ui_components.py
 import streamlit as st
 import time
 import os
@@ -216,68 +216,79 @@ def render_sidebar(username, is_manual_search_mode, logout_callback):
         is_manual_search_mode: Boolean for manual search mode
         logout_callback: Function to call when logout is clicked
     """
+    # Sidebar toggle (top-left minimal button)
+    sb_state_key = 'sidebar_visible'
+    if sb_state_key not in st.session_state:
+        st.session_state[sb_state_key] = True
+
     with st.sidebar:
+        # Header with compact profile and toggle
         st.markdown(
             f"""
-            <h3 style="color: var(--dark-purple); font-weight: 600;">Welcome!</h3>
-            <p style="color: #666; font-size: 0.9rem;">Logged in as: {username}</p>
-            <div class="scribble-bottom"></div>
-            """, 
-            unsafe_allow_html=True
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+              <div>
+                <div style="font-weight:600;color:var(--dark-purple);">{username}</div>
+                <div style="font-size:12px;color:#7a7590;">Online</div>
+              </div>
+              <button onclick="parent.postMessage({{isStreamlitMessage: true, command: 'toggleSidebar'}}, '*')"
+                      style="border:1px solid rgba(111,87,232,.25);background:#fff;border-radius:10px;padding:6px 10px;font-size:12px;color:#5b44e1;cursor:pointer;">Hide</button>
+            </div>
+            <div style="height:1px;background:rgba(111,87,232,.15);margin:8px 0 14px 0"></div>
+            """,
+            unsafe_allow_html=True,
         )
-        
-        # OpenAI API key status
-        st.success("✅ OpenAI API key is set!")
-        
-        # Odoo connection status
-        st.success("✅ Connected to Odoo")
-        
-        # Debug toggle
-        show_debug = st.checkbox(
-            "Show Debug Info", 
-            value=st.session_state.get('show_debug', False),
-            key='debug_toggle'
-        )
-        
-        # Update session state when checkbox changes
+
+        # Last completed flow card
+        last_flow = st.session_state.get('last_completed_flow')
+        last_meta = st.session_state.get('last_completed_meta', {})
+        if last_flow:
+            title = {
+                'template_request': 'Last Document Generated',
+                'overtime_request': 'Last Overtime Request',
+                'employee_request': 'Last Time Off Request',
+                'expense_report': 'Last Expense Report'
+            }.get(last_flow, 'Last Completed Flow')
+
+            st.markdown(
+                f"""
+                <div style="border:1px solid rgba(111,87,232,.15);background:linear-gradient(180deg,#ffffffcc,#fbfbffcc);padding:12px;border-radius:12px;">
+                  <div style="font-weight:600;color:var(--dark-purple);margin-bottom:4px;">{title}</div>
+                  <div style="font-size:13px;color:#7a7590;">
+                    {last_meta.get('summary','Completed successfully.')}
+                  </div>
+                  <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+                    {(''.join([f'<span style="font-size:11px;background:#f3f2f9;border:1px solid rgba(111,87,232,.15);padding:4px 8px;border-radius:999px;color:#5b44e1;">{k}: {v}</span>' for k,v in last_meta.get('tags',[])]))}
+                  </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        else:
+            st.info("No recent flow yet. Generate a document or submit a request to see it here.")
+
+        st.markdown("""
+            <div style="height:1px;background:rgba(111,87,232,.15);margin:14px 0 10px 0"></div>
+        """, unsafe_allow_html=True)
+
+        # Toggles
+        col_a, col_b = st.columns(2)
+        with col_a:
+            show_debug = st.toggle("Debug", value=st.session_state.get('show_debug', False), key='debug_toggle')
+        with col_b:
+            manual_mode = st.toggle("Manual", value=is_manual_search_mode, key='manual_mode_toggle')
+
         if show_debug != st.session_state.get('show_debug', False):
             st.session_state.show_debug = show_debug
             st.rerun()
-        
-        # Add manual search toggle
-        st.markdown("---")
-        manual_mode = st.checkbox(
-            "Manual Search Mode", 
-            value=is_manual_search_mode,
-            help="Enable to search for other employees instead of viewing your own data",
-            key='manual_mode_toggle'
-        )
-        
-        # Update session state when checkbox changes
         if manual_mode != st.session_state.get('manual_search_mode', False):
             st.session_state.manual_search_mode = manual_mode
             st.rerun()
-        
-        # Show available templates
-        st.markdown("---")
-        st.markdown(
-            """
-            <h4 style="color: var(--dark-purple); font-weight: 500;">Available Templates</h4>
-            """, 
-            unsafe_allow_html=True
-        )
+
         st.markdown("""
-        📄 **Employment Letters**
-        - Standard (English)
-        - Arabic version
-        - Embassy/visa letters
-        - Experience certificates
-        
-        Just ask the chatbot to generate any of these!
-        """)
-        
-        # Logout button
-        st.markdown("---")
+            <div style="height:1px;background:rgba(111,87,232,.15);margin:14px 0 12px 0"></div>
+        """, unsafe_allow_html=True)
+
+        # Minimal actions
         if st.button("🚪 Logout", use_container_width=True):
             logout_callback()
 
