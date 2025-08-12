@@ -27,6 +27,7 @@ def init_session_state():
         st.session_state.messages = []
         st.session_state.employee_data = None
         st.session_state.username = None
+        st.session_state.sidebar_hidden = False
 
 # Call the initialization function
 init_session_state()
@@ -156,20 +157,44 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Floating sidebar toggle (works even when header is hidden)
+# Handle sidebar toggle via query param (JS-free and reliable)
+try:
+    params = st.experimental_get_query_params()  # Deprecated but widely supported
+except Exception:
+    params = {}
+
+if 'sb' in params:
+    value = params.get('sb', ['0'])[0]
+    st.session_state.sidebar_hidden = (value == '1')
+    # Clear param to keep URL clean
+    try:
+        # Remove 'sb' while preserving others
+        cleaned = {k: v for k, v in params.items() if k != 'sb'}
+        st.experimental_set_query_params(**cleaned)
+    except Exception:
+        pass
+
+# Conditionally hide sidebar via CSS (no JS needed)
+if st.session_state.sidebar_hidden:
+    st.markdown(
+        """
+        <style>
+          section[data-testid="stSidebar"] {
+            transform: translateX(-110%) !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+          }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+# Floating sidebar toggle link (fixed position). Clicking reloads with sb param
+next_sb = '0' if st.session_state.sidebar_hidden else '1'
+toggle_label = '☰ Menu'
 st.markdown(
-    """
-    <button id="sb-toggle">☰ Menu</button>
-    <script>
-      (function(){
-        const btn = document.getElementById('sb-toggle');
-        if (!btn) return;
-        btn.addEventListener('click', () => {
-          const el = window.parent?.document?.documentElement;
-          if (el) el.classList.toggle('sb-hidden');
-        });
-      })();
-    </script>
+    f"""
+    <a id="sb-toggle" href="?sb={next_sb}">{toggle_label}</a>
     """,
     unsafe_allow_html=True,
 )
