@@ -43,120 +43,97 @@ style_manager.load_css()
 # Add custom CSS for the lilac background and header fix
 st.markdown("""
 <style>
-    /* GRADIENT BACKGROUND - Force on all elements */
-    html, body, #root, .stApp, .main, section.main > div {
-        background: linear-gradient(135deg, #F3E8FF 0%, #FFFFFF 100%) !important;
-        background-attachment: fixed !important;
-    }
-    
-    .block-container {
-        background: transparent !important;
-    }
-    
-    /* CHAT MESSAGES - WhatsApp Style */
-    /* User messages - Right aligned with purple background */
-    div[data-testid="stChatMessageContainer"] > div[data-testid="stChatMessage"]:has(img[data-testid="chatAvatarIcon-user"]) {
-        flex-direction: row-reverse !important;
-        text-align: right !important;
-    }
-    
-    div[data-testid="stChatMessageContainer"] > div[data-testid="stChatMessage"]:has(img[data-testid="chatAvatarIcon-user"]) > div:last-child {
-        background-color: #9B6DD6 !important;
-        color: white !important;
-        border-radius: 18px 18px 4px 18px !important;
-        margin-left: auto !important;
-        margin-right: 0 !important;
-        max-width: 70% !important;
-        padding: 12px 16px !important;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
-    }
-    
-    /* Assistant messages - Left aligned with white background */
-    div[data-testid="stChatMessageContainer"] > div[data-testid="stChatMessage"]:has(img[data-testid="chatAvatarIcon-assistant"]) > div:last-child {
-        background-color: white !important;
-        color: #2B1B4C !important;
-        border: 1px solid rgba(212, 181, 247, 0.3) !important;
-        border-radius: 18px 18px 18px 4px !important;
-        margin-right: auto !important;
-        margin-left: 0 !important;
-        max-width: 70% !important;
-        padding: 12px 16px !important;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
-    }
-    
-    /* Hide avatars */
-    img[data-testid="chatAvatarIcon-user"],
-    img[data-testid="chatAvatarIcon-assistant"] {
-        display: none !important;
-    }
-    
-    /* Remove default message styling */
-    div[data-testid="stChatMessage"] {
-        background: transparent !important;
-        border: none !important;
-    }
-    
-    /* Chat container - Bottom to top flow */
-    div[data-testid="stChatMessageContainer"] {
-        display: flex !important;
-        flex-direction: column !important;
-        padding-bottom: 20px !important;
-    }
-    
-    /* Ensure messages start from bottom */
-    div[data-testid="stChatMessageContainer"]:before {
-        content: '';
-        flex: 1 1 auto;
-    }
-    
-    /* Chat input styling - fixed at bottom */
-    div[data-testid="stChatInput"] {
-        position: fixed !important;
-        bottom: 20px !important;
-        left: 50% !important;
-        transform: translateX(-50%) !important;
-        width: calc(100% - 40px) !important;
-        max-width: 900px !important;
-        background-color: rgba(255, 255, 255, 0.95) !important;
-        backdrop-filter: blur(10px) !important;
-        border: 1px solid #D4B5F7 !important;
-        border-radius: 24px !important;
-        box-shadow: 0 2px 8px rgba(155, 109, 214, 0.15) !important;
-        padding: 4px !important;
-        z-index: 999 !important;
-    }
-    
-    /* Add padding to bottom of main container for chat input */
-    section.main {
-        padding-bottom: 100px !important;
-    }
-    
-    /* Auto-scroll behavior and bottom padding inside chat list */
-    div[data-testid="stChatMessageContainer"] {
-        scroll-behavior: smooth !important;
-        padding-bottom: 220px !important; /* ensure last message not under fixed input */
-    }
-    
-    /* Ensure new messages are visible */
-    .bot-bubble:last-child,
-    .user-bubble:last-child {
-        margin-bottom: 20px !important;
-    }
-    
-    /* Sidebar with semi-transparent background */
-    section[data-testid="stSidebar"] {
-        background: rgba(248, 242, 255, 0.9) !important;
-        backdrop-filter: blur(10px) !important;
-    }
-    
-    /* Hide Streamlit elements */
-    header {
-        display: none !important;
-    }
-    
-    #MainMenu, footer, .stDeployButton {
-        display: none !important;
-    }
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --bg-start: #F7F7FB;
+    --bg-end: #ECE9F7;
+    --primary: #6F57E8;
+    --primary-600: #5b44e1;
+    --text: #1f1b2d;
+    --muted: #6a6580;
+    --ring: rgba(111, 87, 232, .35);
+  }
+
+  html, body, #root, .stApp, .main, section.main > div {
+    background: radial-gradient(1200px 600px at 10% 10%, var(--bg-end), transparent),
+                radial-gradient(1200px 600px at 90% 10%, #f0f7ff, transparent),
+                linear-gradient(180deg, var(--bg-start), #ffffff);
+    background-attachment: fixed !important;
+    font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    color: var(--text);
+  }
+
+  .block-container { max-width: 1100px; }
+
+  /* Chat list */
+  div[data-testid="stChatMessageContainer"] {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    padding: 8px 0 240px !important; /* allow space for fixed input */
+    scroll-behavior: smooth !important;
+  }
+  div[data-testid="stChatMessageContainer"]:before { content: ''; flex: 1 1 auto; }
+
+  /* Hide avatars */
+  img[data-testid="chatAvatarIcon-user"],
+  img[data-testid="chatAvatarIcon-assistant"] { display: none !important; }
+
+  /* Reset default message wrapper */
+  div[data-testid="stChatMessage"] { background: transparent !important; border: none !important; }
+
+  /* User bubble (right) */
+  div[data-testid="stChatMessageContainer"] > div[data-testid="stChatMessage"]:has(img[data-testid="chatAvatarIcon-user"]) {
+    flex-direction: row-reverse !important; text-align: right !important;
+  }
+  div[data-testid="stChatMessageContainer"] > div[data-testid="stChatMessage"]:has(img[data-testid="chatAvatarIcon-user"]) > div:last-child {
+    background: linear-gradient(135deg, var(--primary), var(--primary-600)) !important;
+    color: #fff !important;
+    border-radius: 18px 18px 4px 18px !important;
+    margin-left: auto !important; margin-right: 0 !important;
+    max-width: 72% !important; padding: 12px 16px !important;
+    box-shadow: 0 6px 20px rgba(111, 87, 232, .25) !important;
+  }
+
+  /* Assistant bubble (left) */
+  div[data-testid="stChatMessageContainer"] > div[data-testid="stChatMessage"]:has(img[data-testid="chatAvatarIcon-assistant"]) > div:last-child {
+    background: #ffffffcc !important;
+    backdrop-filter: saturate(1.2) blur(6px) !important;
+    color: var(--text) !important;
+    border: 1px solid rgba(111, 87, 232, .12) !important;
+    border-radius: 18px 18px 18px 4px !important;
+    margin-right: auto !important; margin-left: 0 !important;
+    max-width: 72% !important; padding: 12px 16px !important;
+    box-shadow: 0 8px 18px rgba(31, 27, 45, .06) !important;
+  }
+
+  /* Links & code in bubbles */
+  .bot-bubble a { color: var(--primary) !important; text-decoration: none; font-weight: 600; }
+  .bot-bubble a:hover { text-decoration: underline; }
+  .bot-bubble code, .user-bubble code { background: #f3f2f9; padding: 2px 6px; border-radius: 6px; }
+
+  /* Fixed input at bottom (glassmorphism) */
+  div[data-testid="stChatInput"] {
+    position: fixed !important; bottom: 20px !important; left: 50% !important; transform: translateX(-50%) !important;
+    width: calc(100% - 40px) !important; max-width: 920px !important;
+    background: rgba(255, 255, 255, 0.75) !important; backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(111, 87, 232, .25) !important; border-radius: 20px !important;
+    box-shadow: 0 10px 30px rgba(31, 27, 45, .12) !important; padding: 6px 8px !important; z-index: 999 !important;
+  }
+  div[data-testid="stChatInput"] textarea { border: none !important; }
+  div[data-testid="stChatInput"]:focus-within { box-shadow: 0 0 0 4px var(--ring) !important; }
+
+  /* Sidebar */
+  section[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #fbfbffcc, #ffffffcc) !important;
+    backdrop-filter: blur(12px) !important;
+    border-right: 1px solid rgba(111, 87, 232, .12) !important;
+  }
+
+  /* Global tweaks */
+  header, #MainMenu, footer, .stDeployButton { display: none !important; }
+
 </style>
 """, unsafe_allow_html=True)
 
