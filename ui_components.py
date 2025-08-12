@@ -224,18 +224,19 @@ def render_sidebar(username, is_manual_search_mode, logout_callback):
         st.session_state[sb_state_key] = True
 
     with st.sidebar:
-        # Header with compact profile and toggle
+        # Minimal, elegant header (no big banner)
         st.markdown(
             f"""
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-              <div>
-                <div style="font-weight:600;color:var(--dark-purple);">{username}</div>
-                <div style="font-size:12px;color:#7a7590;">Online</div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+              <div style="width:8px;height:8px;border-radius:999px;background:#5b44e1;"></div>
+              <div style="font-weight:600;color:var(--dark-purple);font-size:14px;">{username}</div>
+              <div style="margin-left:auto;">
+                <button onclick=\"parent.postMessage({{ type: 'streamlit:toggleSidebar' }}, '*')\"
+                        title="Hide"
+                        style="border:1px solid rgba(111,87,232,.18);background:#fff;border-radius:8px;padding:4px 8px;font-size:11px;color:#5b44e1;cursor:pointer;">Hide</button>
               </div>
-              <button onclick="parent.postMessage({{ type: 'streamlit:toggleSidebar' }}, '*')"
-                      style="border:1px solid rgba(111,87,232,.25);background:#fff;border-radius:10px;padding:6px 10px;font-size:12px;color:#5b44e1;cursor:pointer;">Hide</button>
             </div>
-            <div style="height:1px;background:rgba(111,87,232,.15);margin:8px 0 14px 0"></div>
+            <div style="height:1px;background:rgba(111,87,232,.12);margin:6px 0 12px 0"></div>
             """,
             unsafe_allow_html=True,
         )
@@ -269,7 +270,7 @@ def render_sidebar(username, is_manual_search_mode, logout_callback):
             st.info("No recent flow yet. Generate a document or submit a request to see it here.")
 
         st.markdown("""
-            <div style="height:1px;background:rgba(111,87,232,.15);margin:14px 0 10px 0"></div>
+            <div style="height:1px;background:rgba(111,87,232,.1);margin:12px 0 10px 0"></div>
         """, unsafe_allow_html=True)
 
         # Toggles
@@ -287,7 +288,7 @@ def render_sidebar(username, is_manual_search_mode, logout_callback):
             st.rerun()
 
         st.markdown("""
-            <div style="height:1px;background:rgba(111,87,232,.15);margin:14px 0 12px 0"></div>
+            <div style="height:1px;background:rgba(111,87,232,.1);margin:12px 0 10px 0"></div>
         """, unsafe_allow_html=True)
 
         # Minimal actions
