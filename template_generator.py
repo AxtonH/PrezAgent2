@@ -1,4 +1,4 @@
-﻿import io
+import io
 import xmlrpc.client
 import streamlit as st
 from docx import Document
@@ -665,22 +665,25 @@ def generate_template(template_type: str, employee_data: Dict[str, Any],
     # Add embassy details if applicable
     if template_type == 'employment_letter_embassy' and embassy_details:
         enriched_data['country'] = embassy_details.get('country', '')
-        if embassy_details.get('start_date'):
+        
+        # Backup validation: Check travel duration before generating template
+        if embassy_details.get('start_date') and embassy_details.get('end_date'):
             try:
                 start_dt = datetime.datetime.strptime(embassy_details['start_date'], '%Y-%m-%d')
-                enriched_data['start_date'] = start_dt.strftime('%d/%m/%Y')
+                end_dt = datetime.datetime.strptime(embassy_details['end_date'], '%Y-%m-%d')
+                duration = (end_dt - start_dt).days
+                
+                if duration > 14:
+                    st.session_state.debug_info['template_generation']['error'] = f'Travel duration ({duration} days) exceeds 14-day limit'
+                    return None
+                    
+                enriched_data['start_date'] = start_dt.strftime('%d/%m')
+                enriched_data['end_date'] = end_dt.strftime('%d/%m')
             except:
                 enriched_data['start_date'] = embassy_details.get('start_date', '')
-        else:
-            enriched_data['start_date'] = ''
-            
-        if embassy_details.get('end_date'):
-            try:
-                end_dt = datetime.datetime.strptime(embassy_details['end_date'], '%Y-%m-%d')
-                enriched_data['end_date'] = end_dt.strftime('%d/%m/%Y')
-            except:
                 enriched_data['end_date'] = embassy_details.get('end_date', '')
         else:
+            enriched_data['start_date'] = ''
             enriched_data['end_date'] = ''
     else:
         enriched_data['country'] = ''
