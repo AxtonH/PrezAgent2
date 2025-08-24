@@ -1,4 +1,4 @@
-﻿# openai_helper.py
+# openai_helper.py
 import openai
 import json
 import time
@@ -146,6 +146,85 @@ def detect_expense_report_intent(query):
     ]
     return any(k in query_lower for k in keywords)
 
+def is_policy_question(query):
+    """
+    Detect if this is a general policy question that should not be contaminated with personal data
+    """
+    query_lower = query.lower()
+    
+    # Policy-related keywords that indicate general policy questions
+    policy_indicators = [
+        'policy', 'policies', 'procedure', 'procedures', 'process', 'rule', 'rules',
+        'how does', 'how do', 'what is', 'what are', 'tell me about', 'explain',
+        'company policy', 'prezlab policy', 'prezlabs policy', 'holiday policy',
+        'leave policy', 'vacation policy', 'sick leave policy', 'overtime policy',
+        'expense policy', 'reimbursement policy', 'travel policy', 'remote work policy',
+        'work from home policy', 'attendance policy', 'time off policy'
+    ]
+    
+    # Personal data keywords that indicate it's about individual data
+    personal_indicators = [
+        'my leave', 'my vacation', 'my balance', 'my allocation', 'my days',
+        'how many days do i have', 'my remaining', 'my available', 'my used',
+        'show my', 'check my', 'view my', 'display my'
+    ]
+    
+    # Check if it contains policy indicators
+    has_policy_indicators = any(indicator in query_lower for indicator in policy_indicators)
+    
+    # Check if it contains personal indicators
+    has_personal_indicators = any(indicator in query_lower for indicator in personal_indicators)
+    
+    # It's a policy question if it has policy indicators but no personal indicators
+    return has_policy_indicators and not has_personal_indicators
+
+def is_informational_question(query):
+    """
+    Detect if the query is an informational question that should be handled by 
+    the knowledge base rather than triggering a workflow.
+    """
+    import re
+    query_lower = query.lower().strip()
+    
+    # Question words/patterns that indicate informational queries
+    question_patterns = [
+        r'^\s*what\s+(is|are|does|do|can|would|will|should)',  # "What is...", "What are...", etc.
+        r'^\s*how\s+(does|do|can|would|will|should|to)',       # "How does...", "How to...", etc.  
+        r'^\s*when\s+(does|do|can|would|will|should|is|are)',  # "When does...", "When is...", etc.
+        r'^\s*where\s+(does|do|can|would|will|should|is|are)', # "Where does...", "Where is...", etc.
+        r'^\s*why\s+(does|do|can|would|will|should|is|are)',   # "Why does...", "Why is...", etc.
+        r'^\s*who\s+(does|do|can|would|will|should|is|are)',   # "Who does...", "Who is...", etc.
+        r'^\s*(can\s+you\s+)?(tell\s+me|explain|describe)',    # "Tell me about...", "Explain...", "Describe..."
+        r'^\s*is\s+(there|it|this)',                           # "Is there...", "Is it...", "Is this..."
+        r'^\s*are\s+(there|they|these)',                       # "Are there...", "Are they...", "Are these..."
+        r'^\s*do\s+(you\s+know|we\s+have|i\s+need\s+to\s+know)', # "Do you know...", "Do we have..."
+        r'^\s*(what\'s|whats)\s+the',                          # "What's the policy...", "What's the process..."
+        r'information\s+(about|on|regarding)',                 # "information about..."
+        r'details\s+(about|on|regarding)',                     # "details about..."
+    ]
+    
+    # Check if it starts with question patterns
+    for pattern in question_patterns:
+        if re.search(pattern, query_lower):
+            return True
+    
+    # Additional heuristics for questions
+    if query_lower.endswith('?'):
+        return True
+    
+    # Policy/process related questions
+    policy_question_patterns = [
+        r'\b(policy|policies|procedure|procedures|process|processes|rule|rules|guideline|guidelines)\b',
+        r'\bhow\s+(long|much|many|often)',
+        r'\bwhat\s+(happens|is\s+the|are\s+the)',
+    ]
+    
+    for pattern in policy_question_patterns:
+        if re.search(pattern, query_lower):
+            return True
+            
+    return False
+
 def generate_ai_response(query, employee_data):
     """
     Generate AI response using OpenAI Assistant (Prezbot) based on employee data and query
@@ -156,9 +235,29 @@ def generate_ai_response(query, employee_data):
     if st.session_state.get('template_request', {}).get('template_type') or st.session_state.get('template_request', {}).get('embassy_details'):
         return handle_template_request(query, employee_data)
 
-    # --- LEAVE BALANCE INTENT GUARD ---
-    if detect_leave_balance_intent(query):
-        return format_leave_balance(employee_data)
+    # --- INFORMATIONAL QUESTION GUARD ---
+    # If it's clearly an informational question, prioritize knowledge base over workflows
+    if is_informational_question(query):
+        # Still check for leave balance intent for specific balance queries like "show my leave balance"
+        if detect_leave_balance_intent(query):
+            # But only if it's a direct balance request, not a general policy question
+            # More specific check - don't block if it's asking specifically about "my balance" 
+            import re
+            policy_words = ['policy', 'procedure', 'process', 'rule', 'how to', 'how do', 'how does', 'work']
+            what_policy_patterns = [r'what is.*(?:policy|procedure|process|rule)', r'what are.*(?:policy|procedure|process|rule)']
+            
+            has_policy_context = (
+                any(word in query.lower() for word in policy_words) or
+                any(re.search(pattern, query.lower()) for pattern in what_policy_patterns)
+            )
+            
+            if not has_policy_context:
+                return format_leave_balance(employee_data)
+        # Otherwise, let it fall through to general AI response
+    else:
+        # --- LEAVE BALANCE INTENT GUARD ---
+        if detect_leave_balance_intent(query):
+            return format_leave_balance(employee_data)
 
     if active_workflow:
         if active_workflow == 'overtime_request':
@@ -205,22 +304,26 @@ def generate_ai_response(query, employee_data):
 
     # Route based on intent
     if confidence < 0.7:
-        # If confidence is low, check with more specific detectors before falling back to general
-        if detect_overtime_intent(query):
-            intent = 'overtime_request'
-        elif detect_time_off_intent(query):
-            intent = 'time_off_request'
-        elif detect_template_intent(query):
-            intent = 'template_request'
-        elif detect_employee_search_intent(query):
-            intent = 'employee_search'
-        elif is_manager(employee_data.get('id')):
-            if detect_approval_intent(query):
-                intent = 'manager_approval'
-            elif detect_overtime_approval_intent(query):
-                intent = 'manager_overtime_approval'
+        # If it's an informational question, don't override with specific detectors unless very specific
+        if is_informational_question(query):
+            intent = 'general'  # Let the knowledge base handle it
         else:
-            intent = 'general'
+            # If confidence is low, check with more specific detectors before falling back to general
+            if detect_overtime_intent(query):
+                intent = 'overtime_request'
+            elif detect_time_off_intent(query):
+                intent = 'time_off_request'
+            elif detect_template_intent(query):
+                intent = 'template_request'
+            elif detect_employee_search_intent(query):
+                intent = 'employee_search'
+            elif is_manager(employee_data.get('id')):
+                if detect_approval_intent(query):
+                    intent = 'manager_approval'
+                elif detect_overtime_approval_intent(query):
+                    intent = 'manager_overtime_approval'
+            else:
+                intent = 'general'
 
     if intent == 'manager_overtime_approval':
         return handle_manager_overtime_approval(query, employee_data)
@@ -242,33 +345,46 @@ def generate_ai_response(query, employee_data):
     try:
         client = openai.OpenAI(api_key=OPENAI_API_KEY)
         
-        is_partner = employee_data.get('is_partner', False)
-        data_type = "partner" if is_partner else "employee"
-        
-        manager_context = ""
-        if not is_partner and is_manager(employee_data.get('id')):
-            manager_context = """
-        6. As a manager, you can:
-           - List your team members (their details are in the provided data).
-           - View and approve/deny pending time off requests.
-           - View and manage pending overtime requests.
-           - View approved time off for your team.
-        """
-        
-        context_message = f"""
-        You are answering questions about a Prezlab {data_type} named {employee_data.get('name', 'Unknown')} with the following data:
-        {json.dumps(employee_data, indent=2)}
-        
-        Remember:
-        1. This person works at Prezlab.
-        2. You are Prezbot, a specialized assistant for Prezlab employees.
-        3. You can help request time off.
-        4. You can help generate documents like employment letters.
-        5. You can help submit overtime requests.{manager_context}
-        
-        Use the specific information provided AND your general knowledge about Prezlab's policies 
-        to answer the following question: {query}
-        """
+        # Check if this is a policy question that should use clean context
+        if is_policy_question(query):
+            # Clean context for policy questions - no personal data contamination
+            context_message = f"""
+            You are Prezbot, a specialized assistant for Prezlab employees.
+            
+            You have comprehensive knowledge about Prezlab's policies and procedures. Please provide 
+            a detailed, accurate response about company policies based on your training data.
+            
+            Answer the following policy question: {query}
+            """
+        else:
+            # Personal context for individual questions
+            is_partner = employee_data.get('is_partner', False)
+            data_type = "partner" if is_partner else "employee"
+            
+            manager_context = ""
+            if not is_partner and is_manager(employee_data.get('id')):
+                manager_context = """
+            6. As a manager, you can:
+               - List your team members (their details are in the provided data).
+               - View and approve/deny pending time off requests.
+               - View and manage pending overtime requests.
+               - View approved time off for your team.
+            """
+            
+            context_message = f"""
+            You are answering questions about a Prezlab {data_type} named {employee_data.get('name', 'Unknown')} with the following data:
+            {json.dumps(employee_data, indent=2)}
+            
+            Remember:
+            1. This person works at Prezlab.
+            2. You are Prezbot, a specialized assistant for Prezlab employees.
+            3. You can help request time off.
+            4. You can help generate documents like employment letters.
+            5. You can help submit overtime requests.{manager_context}
+            
+            Use the specific information provided AND your general knowledge about Prezlab's policies 
+            to answer the following question: {query}
+            """
         
         thread = client.beta.threads.create()
         client.beta.threads.messages.create(
