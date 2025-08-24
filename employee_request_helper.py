@@ -1,4 +1,4 @@
-﻿# employee_request_helper.py - Enhanced version with hybrid intent detection
+# employee_request_helper.py - Enhanced version with hybrid intent detection
 import streamlit as st
 import re
 from datetime import datetime, timedelta
@@ -235,6 +235,59 @@ def handle_employee_request(query, employee_data):
     # Fallback if no specific intent is detected, but this function was called
     # Try to handle as time-off by default, as it's the most common request
     return handle_time_off_request(query, employee_data)
+
+def validate_embassy_travel_duration(start_date_str, end_date_str):
+    """
+    Validate that embassy letter travel duration is not more than 14 days.
+    Returns error message if invalid, None if valid.
+    """
+    try:
+        from datetime import datetime
+        
+        # Try multiple date formats
+        date_formats = ['%Y-%m-%d', '%d/%m/%Y', '%d/%m']
+        start_dt = None
+        end_dt = None
+        
+        # Parse start date
+        for fmt in date_formats:
+            try:
+                start_dt = datetime.strptime(start_date_str, fmt)
+                if fmt == '%d/%m':  # Add current year if DD/MM format
+                    start_dt = start_dt.replace(year=datetime.now().year)
+                break
+            except:
+                continue
+        
+        # Parse end date
+        for fmt in date_formats:
+            try:
+                end_dt = datetime.strptime(end_date_str, fmt)
+                if fmt == '%d/%m':  # Add current year if DD/MM format
+                    end_dt = end_dt.replace(year=datetime.now().year)
+                break
+            except:
+                continue
+        
+        if start_dt and end_dt:
+            duration = (end_dt - start_dt).days
+            
+            if duration > 14:  # More than 14 days
+                return f"""❌ **Travel Duration Too Long**
+
+Your requested travel duration is {duration} days, which exceeds our 14-day limit for embassy letters.
+
+**If you want to take time off spanning more than 14 days, please speak to the People & Culture (P&C) team.**
+
+The P&C team will be able to assist you with longer duration employment letters for embassy purposes.
+
+💡 *For travel periods of 14 days or less, feel free to try again with shorter dates.*"""
+        
+        # Return None if valid or parsing failed (let other validation handle parsing errors)
+        return None
+    except:
+        # If date parsing fails, return None (let other validation handle it)
+        return None
 
 def parse_single_date(date_str):
     """Enhanced date parsing with support for DD/MM format, written dates, ordinal numbers, and misspellings"""
@@ -730,7 +783,7 @@ Please check the dates and try again, or contact HR for assistance.
             if is_arabic:
                 return f"يرجى تحديد تاريخ بدء الإجازة وتاريخ الانتهاء (مثال: ١٥ يونيو أو غداً أو من ١٥ يونيو إلى ٢٠ يونيو).\n💡 اكتب 'إلغاء' في أي وقت للخروج من هذه العملية."
             else:
-                return f"Great! You want to request {request_data.get('leave_type_name', 'time off')}. \n\nNow, please provide the dates:\n- What date would you like to start your time off?\n- What date would you like to return?\n\nYou can say something like:\n- \"from 3/15 to 3/17\"\n- \"3/15 to 3/17\"  \n- \"from March 15 to March 17\"\n- \"tomorrow\" (for a single day)\n- \"from June 1st till the 2nd\"\n- \"13 of june till 14th\"\n- \"next Monday to Friday\"\n\nPlease provide your dates.\n\n💡 *Type \"cancel\" at any time to exit this process.*"
+                return f"Great! You want to request {request_data.get('leave_type_name', 'time off')}. \n\nNow, please provide the dates:\n- What date would you like to start your time off?\n- What date would you like to return?\n\nYou can say something like:\n- \"from 15/3 to 17/3\"\n- \"15/3 to 17/3\"  \n- \"from March 15 to March 17\"\n- \"tomorrow\" (for a single day)\n- \"from June 1st till the 2nd\"\n- \"13 of june till 14th\"\n- \"next Monday to Friday\"\n\nPlease provide your dates.\n\n💡 *Type \"cancel\" at any time to exit this process.*"
 
 def handle_template_request(query, employee_data):
     """
@@ -827,6 +880,15 @@ Please type "English" or "Arabic" to continue.
         # Store updated request data
         st.session_state.template_request = request_data
         
+        # ALWAYS validate travel duration if we have both dates (regardless of how we got them)
+        if embassy_details.get('start_date') and embassy_details.get('end_date'):
+            validation_result = validate_embassy_travel_duration(embassy_details['start_date'], embassy_details['end_date'])
+            if validation_result:
+                # Clear the request data and return error
+                st.session_state.template_request = {}
+                st.session_state.active_workflow = None
+                return validation_result
+        
         if missing_info:
             if 'country' in missing_info:
                 # Show country selection
@@ -852,17 +914,14 @@ Some examples: {countries_list}
                 
                 # Check again if we have all info now
                 embassy_details = request_data.get('embassy_details', {})
-                if embassy_details.get('start_date') and embassy_details.get('end_date'):
-                    # Continue with generation
-                    pass
-                else:
+                if not (embassy_details.get('start_date') and embassy_details.get('end_date')):
                     return f"""For the employment letter to {embassy_details.get('country', 'the embassy')}, I need your travel dates.
 
 Please provide:
 - Start date of your travel
 - End date of your travel
 
-You can say something like "from March 15 to March 25" or "3/15 to 3/25".
+You can say something like "from 15 March to 25 March" or "15/3 to 25/3".
 
 💡 *Type "cancel" to exit this process.*"""
     
@@ -898,14 +957,30 @@ You can say something like "from March 15 to March 25" or "3/15 to 3/25".
 - Employee: {employee_data.get('name')}
 - Type: {template_info.get('description', 'Employment document')}"""
             if embassy_details:
+                # Format dates as DD/MM for consistency with embassy letter template
+                start_date = embassy_details.get('start_date', '')
+                end_date = embassy_details.get('end_date', '')
+                
+                # Convert from ISO format (YYYY-MM-DD) to DD/MM if needed
+                try:
+                    from datetime import datetime
+                    if start_date and len(start_date) == 10:  # YYYY-MM-DD format
+                        start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+                        start_date = start_dt.strftime('%d/%m')
+                    if end_date and len(end_date) == 10:  # YYYY-MM-DD format
+                        end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+                        end_date = end_dt.strftime('%d/%m')
+                except:
+                    pass  # Keep original format if conversion fails
+                
                 response += f"""
 - Country: {embassy_details.get('country')}
-- Travel dates: {embassy_details.get('start_date')} to {embassy_details.get('end_date')}"""
+- Travel dates: {start_date} to {end_date}"""
             response += f"""
 
 The document has been prepared and is ready for download. Click the download button below to save it.
 
-**Note:** Please review the document before submitting it. If you need any changes, let me know!"""
+**Note:** Please print the employment letter and get it signed by the relevant stakeholder!"""
             # Add both messages to chat history
             download_text = "Download Employment Letter"
             if template_type == 'employment_letter_embassy':
@@ -973,28 +1048,40 @@ def detect_leave_balance_intent(query):
     # Direct keyword/phrase matches
     balance_keywords = [
         'leave balance', 'time off balance', 'vacation balance', 'sick balance',
-        'how many days', 'how much leave', 'how much time off',
-        'check my leave', 'check my balance', 'check my time off',
+        'check my leave balance', 'check my balance', 'check my time off balance',
         'days remaining', 'days left', 'days available',
         'did i take', 'have i taken', 'days i took',
         'time off history', 'leave history',
-        'show my leave', 'display my leave', 'list my leave',
-        'what is my leave', 'do i have leave', 'do i have time off',
+        'show my leave balance', 'display my leave balance', 'list my leave balance',
+        'what is my leave balance', 'do i have leave remaining', 'do i have time off left',
         'leave summary', 'leave report', 'leave status', 'leave entitlement',
-        'allocated leaves', 'allocated leave', 'planned off days', 'planned off day',
-        'scheduled days off', 'scheduled leave', 'scheduled time off'
+        'allocated leaves', 'allocated leave'
     ]
     for k in balance_keywords:
         if k in query_lower:
             return True
-    # Regex patterns for flexible matching
+    # Regex patterns for flexible matching - made more specific for balance requests
     patterns = [
         r'can (i|you) (get|show|give|see|tell).*\b(leave|time off|vacation|sick)\b.*\b(balance|summary|report|status|entitlement)\b',
-        r'how (many|much).*\b(leave|time off|vacation|sick)\b',
+        r'how (many|much).*\b(leave|time off|vacation|sick)\b.*(do i have|left|remaining|available)',
+        r'how many days.*(left|remaining|available|do i have)',  # More general pattern for day counts
         r'what is my (leave|time off|vacation|sick) (balance|status|entitlement)',
         r'(leave|time off|vacation|sick) (balance|summary|report|status|entitlement)',
-        r'(show|display|list|tell).*\b(leave|time off|vacation|sick)\b',
+        r'(show|display|list)\s+(my\s+)?(leave|time off|vacation|sick)\s*(balance|summary|history|days|entitlement)',
         r'(leave|time off|vacation|sick).*\b(history|taken|used|remaining|left|available)\b',
+        
+        # Patterns for planned/scheduled time off variations
+        r'\b(planned|scheduled|upcoming|future)\s+(off\s+days?|time\s+off|leave|vacation|holidays?)\b',
+        r'\b(off\s+days?|time\s+off|leave|vacation|holidays?)\s+(planned|scheduled|upcoming|coming\s+up)\b',
+        r'\bwhat.*\b(planned|scheduled|upcoming)\b.*(off|leave|vacation|time\s+off)\b',
+        r'\b(show|display|list|tell).*\b(planned|scheduled|upcoming)\b.*(off|leave|vacation|time\s+off)\b',
+        r'\bdo\s+i\s+have.*\b(planned|scheduled|upcoming)\b.*(off|leave|vacation|time\s+off)\b',
+        r'\bany.*\b(planned|scheduled|upcoming)\b.*(off\s+days?|time\s+off|leave|vacation)\b',
+        r'\bmy.*\b(planned|scheduled|upcoming)\b.*(off\s+days?|time\s+off|leave|vacation)\b',
+        r'\bwhen.*\b(am\s+i|will\s+i\s+be)\b.*(off|on\s+leave|on\s+vacation)\b',
+        r'\bdays?\s+(i\s+have\s+)?(planned|scheduled|booked|coming\s+up)\b',
+        r'\btime\s+off.*\b(planned|scheduled|booked|coming\s+up)\b',
+        r'\b(scheduled|planned)\s+(days?\s+off|time\s+off)\b'
     ]
     for pat in patterns:
         if re.search(pat, query_lower):
