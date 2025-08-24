@@ -1,0 +1,438 @@
+/* Import Inter font family */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Lilac Galaxy Theme Variables */
+:root {
+    --bg-start: #F7F7FB;
+    --bg-end: #ECE9F7;
+    --primary: #9B6DD6;
+    --primary-600: #8B5CF6;
+    --primary-light: #B794E6;
+    --text-primary: #2d333a;
+    --text-secondary: #6e7681;
+    --border: rgba(155, 109, 214, 0.2);
+    --border-light: rgba(155, 109, 214, 0.1);
+    --user-bg: rgba(255, 255, 255, 0.8);
+    --assistant-bg: rgba(255, 255, 255, 0.6);
+    --sidebar-bg: rgba(248, 242, 255, 0.9);
+    --input-bg: rgba(255, 255, 255, 0.9);
+    --focus-ring: rgba(155, 109, 214, 0.3);
+    --lilac-bg: #F3E8FF;
+    --lilac-light: #F8F2FF;
+}
+
+/* Global styles */
+* {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+}
+
+body {
+    color: var(--text-primary);
+    background: var(--bg-start);
+}
+
+/* Lilac Galaxy Background */
+.stApp {
+    background: 
+        radial-gradient(ellipse 1200px 600px at 10% 10%, rgba(236, 233, 247, 0.6), transparent),
+        radial-gradient(ellipse 1000px 500px at 90% 10%, rgba(248, 242, 255, 0.8), transparent),
+        radial-gradient(ellipse 800px 400px at 50% 90%, rgba(183, 148, 230, 0.3), transparent),
+        linear-gradient(180deg, var(--bg-start), #ffffff) !important;
+    background-attachment: fixed !important;
+    min-height: 100vh;
+}
+
+.main > div {
+    background: transparent !important;
+}
+
+/* Sidebar styling - harmonious with page theme */
+section[data-testid="stSidebar"] {
+    background: rgba(255, 255, 255, 0.75) !important;
+    backdrop-filter: blur(20px) !important;
+    border-right: none !important;
+    border-radius: 0 25px 25px 0 !important; /* Circular right edge */
+    width: 280px !important;
+    transition: all 0.3s ease !important;
+    z-index: 900 !important; /* Lower than header */
+    margin-top: 60px !important;
+    box-shadow: 0 8px 32px rgba(155, 109, 214, 0.15) !important;
+    border: 1px solid rgba(155, 109, 214, 0.1) !important;
+    border-left: none !important;
+}
+
+section[data-testid="stSidebar"] > div {
+    background: transparent !important;
+    padding-top: 0 !important;
+}
+
+/* Sidebar toggle functionality */
+.sidebar-toggle {
+    position: fixed !important;
+    top: 1rem !important;
+    left: 1rem !important;
+    z-index: 1000 !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 8px !important;
+    padding: 0.5rem 0.75rem !important;
+    color: var(--primary) !important;
+    cursor: pointer !important;
+    box-shadow: 0 4px 16px rgba(155, 109, 214, 0.15) !important;
+    transition: all 0.2s ease !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+}
+
+.sidebar-toggle:hover {
+    background: rgba(255, 255, 255, 1) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 20px rgba(155, 109, 214, 0.2) !important;
+}
+
+/* Hidden sidebar state */
+.sidebar-hidden section[data-testid="stSidebar"] {
+    transform: translateX(-100%) !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* Adjust main content when sidebar is hidden */
+.sidebar-hidden .main .block-container {
+    margin-left: 0 !important;
+    max-width: 85vw !important;
+}
+
+/* Button styling - lilac theme */
+.stButton > button {
+    background: var(--primary) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 8px !important;
+    padding: 0.75rem 1rem !important;
+    font-weight: 500 !important;
+    font-size: 14px !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 2px 8px var(--focus-ring) !important;
+}
+
+.stButton > button:hover {
+    background: var(--primary-600) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(155, 109, 214, 0.4) !important;
+}
+
+.stButton > button:active {
+    background: var(--primary-600) !important;
+    transform: translateY(0) !important;
+}
+
+/* Toggle styling */
+.stToggle > label > div {
+    background-color: rgba(155, 109, 214, 0.3) !important;
+}
+
+.stToggle > label > div[data-checked="true"] {
+    background-color: var(--primary) !important;
+}
+
+/* Text input styling - lilac theme */
+.stTextInput > div > div > input {
+    background-color: var(--input-bg) !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 8px !important;
+    padding: 0.75rem !important;
+    color: var(--text-primary) !important;
+    font-size: 14px !important;
+    transition: all 0.2s ease !important;
+}
+
+.stTextInput > div > div > input:focus {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 3px var(--focus-ring) !important;
+    outline: none !important;
+}
+
+.stTextInput > div > div > input::placeholder {
+    color: var(--text-secondary) !important;
+}
+
+/* Password input styling */
+.stTextInput > div > div > input[type="password"] {
+    background-color: var(--input-bg) !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid var(--border) !important;
+}
+
+/* Form styling - clean and transparent */
+[data-testid="stForm"] {
+    background: rgba(255, 255, 255, 0.7) !important;
+    backdrop-filter: blur(15px) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 16px !important;
+    padding: 2rem !important;
+    box-shadow: 0 8px 32px rgba(155, 109, 214, 0.15) !important;
+}
+
+/* Checkbox styling */
+.stCheckbox > label {
+    color: var(--text-primary) !important;
+    font-size: 14px !important;
+}
+
+.stCheckbox > label > span {
+    color: var(--text-primary) !important;
+}
+
+/* Info/success/error messages - lilac themed */
+.stInfo {
+    background-color: rgba(155, 109, 214, 0.1) !important;
+    border: 1px solid var(--primary-light) !important;
+    border-radius: 8px !important;
+    color: var(--primary-600) !important;
+    font-size: 14px !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+.stSuccess {
+    background-color: rgba(34, 197, 94, 0.1) !important;
+    border: 1px solid #22c55e !important;
+    border-radius: 8px !important;
+    color: #15803d !important;
+    font-size: 14px !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+.stError {
+    background-color: rgba(239, 68, 68, 0.1) !important;
+    border: 1px solid #ef4444 !important;
+    border-radius: 8px !important;
+    color: #dc2626 !important;
+    font-size: 14px !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+/* Chat input styling - enhanced */
+div[data-testid="stChatInput"] {
+    background: var(--input-bg) !important;
+    backdrop-filter: blur(15px) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 8px 32px rgba(155, 109, 214, 0.2) !important;
+}
+
+div[data-testid="stChatInput"] textarea {
+    border: none !important;
+    background: transparent !important;
+    font-size: 16px !important;
+    color: var(--text-primary) !important;
+    resize: none !important;
+}
+
+div[data-testid="stChatInput"] textarea::placeholder {
+    color: var(--text-secondary) !important;
+}
+
+div[data-testid="stChatInput"]:focus-within {
+    border-color: var(--primary) !important;
+    box-shadow: 0 8px 32px rgba(155, 109, 214, 0.3) !important;
+}
+
+/* Expander styling */
+.streamlit-expander {
+    border: 1px solid var(--border) !important;
+    border-radius: 12px !important;
+    background-color: rgba(255, 255, 255, 0.7) !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+.streamlit-expanderHeader {
+    color: var(--text-primary) !important;
+    font-weight: 500 !important;
+    background-color: transparent !important;
+}
+
+/* Markdown styling */
+.stMarkdown {
+    color: var(--text-primary);
+}
+
+.stMarkdown h1, .stMarkdown h2, .stMarkdown h3 {
+    color: var(--text-primary);
+}
+
+/* Code blocks - lilac themed */
+.stCodeBlock {
+    background-color: rgba(155, 109, 214, 0.1) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 8px !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+code {
+    background-color: rgba(155, 109, 214, 0.15) !important;
+    color: var(--text-primary) !important;
+    padding: 2px 6px !important;
+    border-radius: 4px !important;
+    font-size: 0.875em !important;
+}
+
+/* Hide Streamlit branding but keep header for sidebar toggle */
+#MainMenu, 
+footer,
+.stDeployButton {
+    visibility: hidden !important;
+    height: 0 !important;
+}
+
+/* Transparent header - functional but nearly invisible */
+header[data-testid="stHeader"] {
+    visibility: visible !important;
+    display: flex !important;
+    height: 60px !important;
+    background: rgba(255, 255, 255, 0.05) !important; /* Almost transparent */
+    backdrop-filter: blur(5px) !important;
+    border-bottom: none !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    z-index: 1000 !important;
+    transition: all 0.2s ease !important;
+}
+
+/* Subtle hover effect for discoverability */
+header[data-testid="stHeader"]:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+/* Progress bar - lilac themed */
+.stProgress > div > div > div > div {
+    background-color: var(--primary) !important;
+}
+
+/* Scrollbar styling - lilac themed */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--lilac-light);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--primary-light);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+}
+
+/* Clean container styling - 75% width */
+.block-container {
+    padding-top: 1rem !important;
+    padding-bottom: 8rem !important;
+    max-width: 75vw !important;
+}
+
+/* Download button styling */
+div[data-testid="stDownloadButton"] > button {
+    background-color: var(--primary) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 8px !important;
+    padding: 0.5rem 1rem !important;
+    font-weight: 500 !important;
+    font-size: 14px !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 2px 8px var(--focus-ring) !important;
+}
+
+div[data-testid="stDownloadButton"] > button:hover {
+    background-color: var(--primary-600) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(155, 109, 214, 0.4) !important;
+}
+
+/* Clean table styling */
+.stDataFrame {
+    border: 1px solid var(--border) !important;
+    border-radius: 12px !important;
+    background: rgba(255, 255, 255, 0.8) !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+/* Smooth transitions */
+* {
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+/* Element spacing */
+.element-container {
+    margin-bottom: 1rem !important;
+}
+
+/* Metric styling if used */
+.metric-container {
+    background: rgba(255, 255, 255, 0.8) !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 12px !important;
+    padding: 1rem !important;
+    box-shadow: 0 4px 16px rgba(155, 109, 214, 0.1) !important;
+}
+
+/* Login page specific styling */
+.login-container {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+/* Beautiful glassmorphism effects */
+.glass-card {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(155, 109, 214, 0.15);
+}
+
+/* Floating animations for visual appeal */
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+@keyframes glow {
+    0%, 100% { box-shadow: 0 8px 32px rgba(155, 109, 214, 0.15); }
+    50% { box-shadow: 0 8px 40px rgba(155, 109, 214, 0.25); }
+}
+
+/* Enhanced focus states */
+.stTextInput > div > div > input:focus,
+.stTextArea > div > div > textarea:focus,
+div[data-testid="stChatInput"]:focus-within {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 25px rgba(155, 109, 214, 0.25) !important;
+}
+
+/* Responsive design improvements */
+@media (max-width: 768px) {
+    .block-container {
+        max-width: 100% !important;
+        padding: 1rem !important;
+    }
+    
+    section[data-testid="stSidebar"] {
+        width: 280px !important;
+    }
+}
