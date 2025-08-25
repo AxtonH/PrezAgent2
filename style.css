@@ -242,7 +242,13 @@ div[data-testid="stChatInput"]:focus-within {
 
 /* Center the send button in chat input */
 div[data-testid="stChatInput"] {
-    position: relative !important;
+    position: fixed !important;
+    bottom: 2rem !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: calc(75vw - 2rem) !important;
+    max-width: calc(75vw - 2rem) !important;
+    z-index: 999 !important;
 }
 
 div[data-testid="stChatInput"] button {
