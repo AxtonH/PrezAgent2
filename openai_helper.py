@@ -22,6 +22,7 @@ from employee_request_helper import (
     format_leave_balance
 )
 from template_generator import detect_template_intent
+from test_arabic_field import handle_arabic_field_test
 from overtime_request_helper import detect_overtime_intent, handle_overtime_request
 from employee_search import handle_employee_search, detect_employee_search_intent
 from session_manager import get_session_value, update_session_value, clear_workflow
@@ -255,6 +256,11 @@ def generate_ai_response(query, employee_data):
                 return format_leave_balance(employee_data)
         # Otherwise, let it fall through to general AI response
     else:
+        # --- ARABIC FIELD TEST INTENT ---
+        arabic_test_result = handle_arabic_field_test(query, employee_data)
+        if arabic_test_result:
+            return arabic_test_result
+        
         # --- LEAVE BALANCE INTENT GUARD ---
         if detect_leave_balance_intent(query):
             return format_leave_balance(employee_data)
