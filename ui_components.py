@@ -1,4 +1,4 @@
-﻿# ui_components.py
+# ui_components.py
 import streamlit as st
 import time
 import os
@@ -110,8 +110,8 @@ def render_login_form(login_callback, saved_credentials=None):
     </div>
     """, unsafe_allow_html=True)
     
-    # Create three columns for centering
-    col1, col2, col3 = st.columns([1, 1, 1])
+    # Create three columns for centering - expand center column by 10%
+    col1, col2, col3 = st.columns([0.95, 1.1, 0.95])
     
     with col2:
         # Login form in a glass card
@@ -124,7 +124,7 @@ def render_login_form(login_callback, saved_credentials=None):
                                        placeholder="your.email@prezlab.com",
                                        label_visibility="collapsed")
                 
-                st.markdown("<div style='margin-bottom: 1rem;'></div>", unsafe_allow_html=True)
+                st.markdown("<div style='margin-bottom: 0.5rem;'></div>", unsafe_allow_html=True)
                 
                 # Pre-fill password if available (hidden)
                 default_password = saved_credentials['password'] if saved_credentials else ""
