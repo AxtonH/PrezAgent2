@@ -1,4 +1,4 @@
-﻿import streamlit as st
+import streamlit as st
 import xmlrpc.client
 from datetime import datetime, timedelta
 from config import (
@@ -1421,9 +1421,24 @@ def enrich_employee_data(employee_data, employee_id):
                 {'fields': [field]}
             )
             
+            # Debug logging for Arabic name field
+            if field == 'x_studio_employee_arabic_name':
+                if 'debug_info' not in st.session_state:
+                    st.session_state.debug_info = {}
+                st.session_state.debug_info['arabic_name_retrieval'] = {
+                    'field_data': field_data,
+                    'employee_id': employee_id,
+                    'field_value': field_data[0].get(field) if field_data else None
+                }
+            
             if field_data and field_data[0].get(field):
                 employee_data[field] = field_data[0][field]
-        except Exception:
+        except Exception as e:
+            # Debug logging for Arabic name field errors
+            if field == 'x_studio_employee_arabic_name':
+                if 'debug_info' not in st.session_state:
+                    st.session_state.debug_info = {}
+                st.session_state.debug_info['arabic_name_error'] = str(e)
             # Skip fields that cause errors
             pass
     
