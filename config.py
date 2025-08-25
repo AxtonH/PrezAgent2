@@ -48,7 +48,8 @@ EMPLOYEE_ADDITIONAL_FIELDS = [
     'category_ids',      # Tags
     'marital',
     'company_id',
-    'planning_role_ids'  # Planning roles
+    'planning_role_ids',  # Planning roles
+    'x_studio_employee_arabic_name'  # Arabic name field
 ]
 
 # Partner fields to retrieve
