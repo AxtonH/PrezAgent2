@@ -312,7 +312,21 @@ def enrich_employee_data_for_template(employee_data: Dict[str, Any], models: xml
         enriched_data['department'] = str(department_field) if department_field else ''
     
     # Get Arabic name (prefer x_studio_employee_arabic_name if available)
+    # Debug logging for Arabic name retrieval
+    if 'debug_info' not in st.session_state:
+        st.session_state.debug_info = {}
+    
+    st.session_state.debug_info['arabic_name_template_debug'] = {
+        'has_arabic_field': 'x_studio_employee_arabic_name' in enriched_data,
+        'arabic_field_value': enriched_data.get('x_studio_employee_arabic_name', 'NOT_FOUND'),
+        'english_name': enriched_data.get('name', 'NOT_FOUND'),
+        'all_fields': list(enriched_data.keys())
+    }
+    
     enriched_data['arabic_name'] = get_arabic_name(enriched_data)
+    
+    # Additional debug after get_arabic_name call
+    st.session_state.debug_info['arabic_name_result'] = enriched_data['arabic_name']
     
     # Get company information
     company_field = employee_data.get("company_id")
