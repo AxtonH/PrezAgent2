@@ -119,12 +119,38 @@ def render_login_form(login_callback, saved_credentials=None):
             with st.form("login_form", clear_on_submit=False):
                 # Pre-fill username if available
                 default_username = saved_credentials['username'] if saved_credentials else ""
+                # Add custom CSS to reduce spacing
+                st.markdown("""
+                <style>
+                /* Reduce spacing between form elements */
+                .stTextInput, .stCheckbox, .stButton {
+                    margin-bottom: 0 !important;
+                    padding-bottom: 0.2rem !important;
+                }
+                
+                /* Reduce padding inside the form */
+                [data-testid="stForm"] {
+                    padding: 1rem !important;
+                }
+                
+                /* Make input fields more compact */
+                .stTextInput > div > div > input {
+                    padding: 0.5rem !important;
+                    margin-bottom: 0.1rem !important;
+                }
+                
+                /* Make checkbox more compact */
+                .stCheckbox > label {
+                    margin-bottom: 0.1rem !important;
+                    padding-bottom: 0.1rem !important;
+                }
+                </style>
+                """, unsafe_allow_html=True)
+                
                 username = st.text_input("Email", 
                                        value=default_username,
                                        placeholder="your.email@prezlab.com",
                                        label_visibility="collapsed")
-                
-                st.markdown("<div style='margin-bottom: 0.1rem;'></div>", unsafe_allow_html=True)
                 
                 # Pre-fill password if available (hidden)
                 default_password = saved_credentials['password'] if saved_credentials else ""
@@ -134,16 +160,12 @@ def render_login_form(login_callback, saved_credentials=None):
                                        placeholder="Enter your password",
                                        label_visibility="collapsed")
                 
-                st.markdown("<div style='margin-bottom: 0.1rem;'></div>", unsafe_allow_html=True)
-                
                 # Remember me checkbox with custom styling (restored)
                 remember_me = st.checkbox(
                     "Remember me",
                     value=bool(saved_credentials),
                     help="Save your credentials for faster login next time",
                 )
-                
-                st.markdown("<div style='margin-bottom: 0.2rem;'></div>", unsafe_allow_html=True)
                 
                 submitted = st.form_submit_button("Sign In", use_container_width=True)
                 
