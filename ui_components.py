@@ -124,7 +124,7 @@ def render_login_form(login_callback, saved_credentials=None):
                                        placeholder="your.email@prezlab.com",
                                        label_visibility="collapsed")
                 
-                st.markdown("<div style='margin-bottom: 0.2rem;'></div>", unsafe_allow_html=True)
+                st.markdown("<div style='margin-bottom: 0.1rem;'></div>", unsafe_allow_html=True)
                 
                 # Pre-fill password if available (hidden)
                 default_password = saved_credentials['password'] if saved_credentials else ""
@@ -134,7 +134,7 @@ def render_login_form(login_callback, saved_credentials=None):
                                        placeholder="Enter your password",
                                        label_visibility="collapsed")
                 
-                st.markdown("<div style='margin-bottom: 0.3rem;'></div>", unsafe_allow_html=True)
+                st.markdown("<div style='margin-bottom: 0.1rem;'></div>", unsafe_allow_html=True)
                 
                 # Remember me checkbox with custom styling (restored)
                 remember_me = st.checkbox(
@@ -143,7 +143,7 @@ def render_login_form(login_callback, saved_credentials=None):
                     help="Save your credentials for faster login next time",
                 )
                 
-                st.markdown("<div style='margin-bottom: 0.5rem;'></div>", unsafe_allow_html=True)
+                st.markdown("<div style='margin-bottom: 0.2rem;'></div>", unsafe_allow_html=True)
                 
                 submitted = st.form_submit_button("Sign In", use_container_width=True)
                 
