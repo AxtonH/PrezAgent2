@@ -124,7 +124,7 @@ def render_login_form(login_callback, saved_credentials=None):
                                        placeholder="your.email@prezlab.com",
                                        label_visibility="collapsed")
                 
-                st.markdown("<div style='margin-bottom: 0.5rem;'></div>", unsafe_allow_html=True)
+                st.markdown("<div style='margin-bottom: 0.2rem;'></div>", unsafe_allow_html=True)
                 
                 # Pre-fill password if available (hidden)
                 default_password = saved_credentials['password'] if saved_credentials else ""
