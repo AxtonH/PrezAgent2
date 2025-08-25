@@ -49,7 +49,9 @@ EMPLOYEE_ADDITIONAL_FIELDS = [
     'marital',
     'company_id',
     'planning_role_ids',  # Planning roles
-    'x_studio_employee_arabic_name'  # Arabic name field
+    'x_studio_employee_arabic_name',  # Arabic name field
+    'x_studio_joining_date',  # Joining date field
+    'x_studio_contract_end_date'  # Contract end date field
 ]
 
 # Partner fields to retrieve
