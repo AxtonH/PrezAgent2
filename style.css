@@ -240,6 +240,38 @@ div[data-testid="stChatInput"]:focus-within {
     box-shadow: 0 8px 32px rgba(155, 109, 214, 0.3) !important;
 }
 
+/* Center the send button in chat input */
+div[data-testid="stChatInput"] button {
+    position: absolute !important;
+    right: 50% !important;
+    transform: translateX(50%) !important;
+    top: 50% !important;
+    transform: translateY(-50%) translateX(50%) !important;
+    background: var(--primary) !important;
+    border: none !important;
+    border-radius: 50% !important;
+    width: 40px !important;
+    height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: white !important;
+    box-shadow: 0 2px 8px rgba(155, 109, 214, 0.3) !important;
+    transition: all 0.2s ease !important;
+}
+
+div[data-testid="stChatInput"] button:hover {
+    background: var(--primary-600) !important;
+    transform: translateY(-50%) translateX(50%) scale(1.05) !important;
+    box-shadow: 0 4px 12px rgba(155, 109, 214, 0.4) !important;
+}
+
+/* Adjust textarea padding to accommodate centered button */
+div[data-testid="stChatInput"] textarea {
+    padding-right: 60px !important;
+    padding-left: 1.5rem !important;
+}
+
 /* Expander styling */
 .streamlit-expander {
     border: 1px solid var(--border) !important;
