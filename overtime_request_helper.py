@@ -291,29 +291,32 @@ def parse_overtime_period(query: str) -> Dict[str, Any]:
         'raw_input': query
     }
     
-    # Flexible patterns with various keywords and formats
-    flexible_patterns = [
-        # Traditional "from X to Y" patterns with flexible date formats
-        r'from\s+([^,]+?)\s+to\s+([^,\n]+?)(?:\s|$)',
-        
-        # "start X end Y" patterns
-        r'start\s+([^,]+?)\s+end\s+([^,\n]+?)(?:\s|$)',
-        
-        # "begin X finish Y" patterns
-        r'begin\s+([^,]+?)\s+(?:finish|end)\s+([^,\n]+?)(?:\s|$)',
-        
-        # Time range with dash: "9am-5pm", "09:00-17:00"
-        r'(\d{1,2}(?:[:\.](\d{2}))?(?:\s*[ap]m)?)\s*[-–]\s*(\d{1,2}(?:[:\.](\d{2}))?(?:\s*[ap]m)?)',
-        
-        # More natural language patterns
-        r'(?:work|overtime)\s+(?:from\s+)?([^,]+?)\s+(?:until|till|to)\s+([^,\n]+?)(?:\s|$)',
-    ]
-    
     # First try the original rigid patterns for backward compatibility
     original_patterns = [
         r'from\s+(\d{1,2}/\d{1,2}\s+\d{1,2}:\d{2})\s+to\s+(\d{1,2}/\d{1,2}\s+\d{1,2}:\d{2})',
         r'from\s+(\d{1,2}/\d{1,2}/\d{4}\s+\d{1,2}:\d{2})\s+to\s+(\d{1,2}/\d{1,2}/\d{4}\s+\d{1,2}:\d{2})',
         r'from\s+(\d{1,2}/\d{1,2}/\d{4}\s+\d{1,2}:\d{2}:\d{2})\s+to\s+(\d{1,2}/\d{1,2}/\d{4}\s+\d{1,2}:\d{2}:\d{2})'
+    ]
+    
+    # Flexible patterns with various keywords and formats (ordered from specific to general)
+    flexible_patterns = [        
+        # Traditional "from X to Y" patterns with flexible date formats
+        r'from\s+(.+?)\s+to\s+(.+?)(?:\s|$)',
+        
+        # "start X end Y" patterns (greedy to capture full end time)
+        r'start\s+(.*?)\s+end\s+(.*)',
+        
+        # "begin X finish Y" patterns  
+        r'begin\s+(.+?)\s+(?:finish|end)\s+(.+?)(?:\s|$)',
+        
+        # More natural language patterns
+        r'(?:work|overtime)\s+(?:from\s+)?(.+?)\s+(?:until|till|to)\s+(.+?)(?:\s|$)',
+        
+        # Time range with dash: "9am-5pm", "09:00-17:00"
+        r'(\d{1,2}(?:[:\.](\d{2}))?(?:\s*[ap]m)?)\s*[-–]\s*(\d{1,2}(?:[:\.](\d{2}))?(?:\s*[ap]m)?)',
+        
+        # Simple "X to Y" pattern (most general) - should catch "tomorrow 9am to 5pm"
+        r'(.+?)\s+to\s+(.+?)(?:\s|$)',
     ]
     
     all_patterns = original_patterns + flexible_patterns
@@ -324,11 +327,11 @@ def parse_overtime_period(query: str) -> Dict[str, Any]:
             groups = match.groups()
             
             # For time range patterns (like 9am-5pm), we need to handle differently
-            if len(groups) >= 2 and pattern == flexible_patterns[3]:  # Time range pattern
+            if len(groups) >= 2 and pattern == flexible_patterns[4]:  # Time range pattern (index 4 in flexible_patterns)
                 # Extract today's date and combine with times
                 today = datetime.now().strftime('%d/%m')
                 start_str = f"{today} {groups[0]}"
-                end_str = f"{today} {groups[2] if groups[2] else groups[1]}"
+                end_str = f"{today} {groups[2] if len(groups) > 2 and groups[2] else groups[1]}"
             else:
                 start_str = groups[0].strip()
                 end_str = groups[1].strip()
@@ -336,6 +339,13 @@ def parse_overtime_period(query: str) -> Dict[str, Any]:
             # Use the new flexible parsing function
             result['start'] = parse_flexible_datetime(start_str)
             result['end'] = parse_flexible_datetime(end_str)
+            
+            # If end parsing failed but it looks like just a time, try adding today's date
+            if result['start'] and not result['end']:
+                # Check if end_str looks like just a time (e.g., "5pm", "18:00")
+                if re.match(r'^\d{1,2}(?:[:\.]?\d{2})?\s*(?:[ap]m)?$', end_str.strip()):
+                    today = datetime.now().strftime('%d/%m')
+                    result['end'] = parse_flexible_datetime(f"{today} {end_str}")
             
             if result['start'] and result['end']:
                 break
