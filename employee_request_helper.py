@@ -980,7 +980,7 @@ You can say something like "from 15 March to 25 March" or "15/3 to 25/3".
 
 The document has been prepared and is ready for download. Click the download button below to save it.
 
-**Note:** Please print the employment letter and get it signed by the relevant stakeholder!"""
+**Note:** Please print the employment letter and get it signed by the P&C team!"""
             # Add both messages to chat history
             download_text = "Download Employment Letter"
             if template_type == 'employment_letter_embassy':
