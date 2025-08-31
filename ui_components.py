@@ -161,11 +161,12 @@ def render_login_form(login_callback, saved_credentials=None):
                                        label_visibility="collapsed")
                 
                 # Remember me checkbox with custom styling (restored)
-                remember_me = st.checkbox(
-                    "Remember me",
-                    value=bool(saved_credentials),
-                    help="Save your credentials for faster login next time",
-                )
+                # remember_me = st.checkbox(
+                #     "Remember me",
+                #     value=bool(saved_credentials),
+                #     help="Save your credentials for faster login next time",
+                # )
+                remember_me = False  # Disabled for now
                 
                 submitted = st.form_submit_button("Sign In", use_container_width=True)
                 
