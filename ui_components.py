@@ -91,7 +91,7 @@ def render_header():
                 <div style="margin-left: 10px; font-size: 18px; color: #6e7681;">✨</div>
             </div>
             <div style="margin-top: 0.5rem; font-size: 14px; color: #6e7681;">
-                Learn how to <a href="https://docs.google.com/document/d/1Nmn2wGjUB5-Dk6wBCoSUj82xZX5NwmoqM8gPwI0joTY/edit?usp=sharing" target="_blank" style="color: #9B6DD6; text-decoration: underline;">prompt</a> Nasma!
+                Learn how to <a href="https://docs.google.com/document/d/1upyayikCf-9kV8Lijlzk4sdMRQSwMEOX4G2STgxelpw/edit?tab=t.0#heading=h.8bxc8e6s0yep" target="_blank" style="color: #9B6DD6; text-decoration: underline;">prompt</a> Nasma!
             </div>
         </div>
         """, 
