@@ -82,11 +82,11 @@ def load_css():
         st.markdown(fallback_css, unsafe_allow_html=True)
 
 def render_header():
-    """Render the PrezAgent header"""
+    """Render the Nasma header"""
     st.markdown(
         """
         <div style="display: flex; align-items: center; justify-content: center; padding: 1.5rem 0; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border-radius: 12px; margin-bottom: 2rem; border: 1px solid rgba(155, 109, 214, 0.2); box-shadow: 0 4px 16px rgba(155, 109, 214, 0.1);">
-            <div style="font-size: 24px; font-weight: 700; color: #9B6DD6;">PrezAgent</div>
+            <div style="font-size: 24px; font-weight: 700; color: #9B6DD6;">Nasma</div>
             <div style="margin-left: 10px; font-size: 18px; color: #6e7681;">✨</div>
         </div>
         """, 
@@ -95,7 +95,7 @@ def render_header():
 
 def render_login_form(login_callback, saved_credentials=None):
     """
-    Render the PrezAgent login form with lilac theme
+    Render the Nasma login form with lilac theme
     
     Args:
         login_callback: Function to call when login is submitted
@@ -104,9 +104,9 @@ def render_login_form(login_callback, saved_credentials=None):
     # Centered logo and welcome message
     st.markdown("""
     <div style="text-align: center; margin: 4rem 0 3rem 0;">
-        <div style="font-size: 3rem; font-weight: 700; color: #9B6DD6; margin-bottom: 1rem;">PrezAgent</div>
+        <div style="font-size: 3rem; font-weight: 700; color: #9B6DD6; margin-bottom: 1rem;">Nasma</div>
         <div style="font-size: 1.25rem; color: #6e7681; margin-bottom: 0.5rem;">Welcome back!</div>
-        <p style="color: #8B5CF6; font-size: 1rem;">Sign in to access PrezAgent</p>
+        <p style="color: #8B5CF6; font-size: 1rem;">Sign in to access Nasma</p>
     </div>
     """, unsafe_allow_html=True)
     
