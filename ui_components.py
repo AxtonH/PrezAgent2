@@ -109,7 +109,7 @@ def render_login_form(login_callback, saved_credentials=None):
     # Centered logo and welcome message
     st.markdown("""
     <div style="text-align: center; margin: 4rem 0 3rem 0;">
-        <div style="font-size: 3rem; font-weight: 700; color: #9B6DD6; margin-bottom: 1rem;">Nasma</div>
+        <div style="font-size: 3rem; font-weight: 700; color: #9B6DD6; margin-bottom: 1rem;">Nasma ✨</div>
         <div style="font-size: 1.25rem; color: #6e7681; margin-bottom: 0.5rem;">Welcome back!</div>
         <p style="color: #8B5CF6; font-size: 1rem;">Sign in to access Nasma</p>
     </div>
