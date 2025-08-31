@@ -268,7 +268,8 @@ def render_sidebar(username, is_manual_search_mode, logout_callback):
         """, unsafe_allow_html=True)
         
         show_debug = st.toggle("Debug mode", value=st.session_state.get('show_debug', False), key='debug_toggle')
-        manual_mode = st.toggle("Manual search", value=is_manual_search_mode, key='manual_mode_toggle')
+        # manual_mode = st.toggle("Manual search", value=is_manual_search_mode, key='manual_mode_toggle')
+        manual_mode = False  # Disabled for now
 
         if show_debug != st.session_state.get('show_debug', False):
             st.session_state.show_debug = show_debug
