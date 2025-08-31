@@ -85,9 +85,14 @@ def render_header():
     """Render the Nasma header"""
     st.markdown(
         """
-        <div style="display: flex; align-items: center; justify-content: center; padding: 1.5rem 0; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border-radius: 12px; margin-bottom: 2rem; border: 1px solid rgba(155, 109, 214, 0.2); box-shadow: 0 4px 16px rgba(155, 109, 214, 0.1);">
-            <div style="font-size: 24px; font-weight: 700; color: #9B6DD6;">Nasma</div>
-            <div style="margin-left: 10px; font-size: 18px; color: #6e7681;">✨</div>
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.5rem 0; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border-radius: 12px; margin-bottom: 2rem; border: 1px solid rgba(155, 109, 214, 0.2); box-shadow: 0 4px 16px rgba(155, 109, 214, 0.1);">
+            <div style="display: flex; align-items: center;">
+                <div style="font-size: 24px; font-weight: 700; color: #9B6DD6;">Nasma</div>
+                <div style="margin-left: 10px; font-size: 18px; color: #6e7681;">✨</div>
+            </div>
+            <div style="margin-top: 0.5rem; font-size: 14px; color: #6e7681;">
+                Learn how to <a href="https://docs.google.com/document/d/1Nmn2wGjUB5-Dk6wBCoSUj82xZX5NwmoqM8gPwI0joTY/edit?usp=sharing" target="_blank" style="color: #9B6DD6; text-decoration: underline;">prompt</a> Nasma!
+            </div>
         </div>
         """, 
         unsafe_allow_html=True
