@@ -1,4 +1,4 @@
-﻿# app.py
+# app.py
 import streamlit as st
 from config import OPENAI_API_KEY, ODOO_URL, ODOO_DB
 from auth import AuthManager
@@ -312,7 +312,7 @@ if not st.session_state.logged_in:
     with st.sidebar:
         st.markdown("""
         <div style="padding: 1.5rem 1rem; text-align: center;">
-            <div style="font-size: 1.5rem; font-weight: 700; color: #9B6DD6; margin-bottom: 0.5rem;">PrezAgent</div>
+            <div style="font-size: 1.5rem; font-weight: 700; color: #9B6DD6; margin-bottom: 0.5rem;">Nasma</div>
             <div style="font-size: 0.875rem; color: #6e7681;">Employee Assistant</div>
         </div>
         <div style="height: 1px; background: linear-gradient(90deg, transparent, rgba(155, 109, 214, 0.3), transparent); margin: 1rem 0;"></div>
