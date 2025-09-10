@@ -312,21 +312,7 @@ def enrich_employee_data_for_template(employee_data: Dict[str, Any], models: xml
         enriched_data['department'] = str(department_field) if department_field else ''
     
     # Get Arabic name (prefer x_studio_employee_arabic_name if available)
-    # Debug logging for Arabic name retrieval
-    if 'debug_info' not in st.session_state:
-        st.session_state.debug_info = {}
-    
-    st.session_state.debug_info['arabic_name_template_debug'] = {
-        'has_arabic_field': 'x_studio_employee_arabic_name' in enriched_data,
-        'arabic_field_value': enriched_data.get('x_studio_employee_arabic_name', 'NOT_FOUND'),
-        'english_name': enriched_data.get('name', 'NOT_FOUND'),
-        'all_fields': list(enriched_data.keys())
-    }
-    
     enriched_data['arabic_name'] = get_arabic_name(enriched_data)
-    
-    # Additional debug after get_arabic_name call
-    st.session_state.debug_info['arabic_name_result'] = enriched_data['arabic_name']
     
     # Get company information
     company_field = employee_data.get("company_id")
@@ -587,6 +573,17 @@ def get_gendered_template_path(template_type: str, gender: str) -> Optional[str]
     ext = base_path.suffix
     gender = (gender or '').lower()
     
+    # Debug logging
+    if 'debug_info' not in st.session_state:
+        st.session_state.debug_info = {}
+    st.session_state.debug_info['template_path_debug'] = {
+        'template_type': template_type,
+        'gender': gender,
+        'base_path': str(base_path),
+        'base_name': base_name,
+        'ext': ext
+    }
+    
     # Handle embassy letter templates
     if template_type == 'employment_letter_embassy':
         # Try gendered embassy templates first
@@ -636,14 +633,19 @@ def get_gendered_template_path(template_type: str, gender: str) -> Optional[str]
         if gender in ['male', 'female']:
             gendered_name = f"Employment Letter - {gender.capitalize()}{ext}"
             gendered_path = base_path.parent / gendered_name
+            st.session_state.debug_info['template_path_debug']['gendered_path'] = str(gendered_path)
+            st.session_state.debug_info['template_path_debug']['gendered_exists'] = gendered_path.exists()
             if gendered_path.exists():
                 return str(gendered_path)
         # fallback
         generic_name = f"Employment Letter{ext}"
         generic_path = base_path.parent / generic_name
+        st.session_state.debug_info['template_path_debug']['generic_path'] = str(generic_path)
+        st.session_state.debug_info['template_path_debug']['generic_exists'] = generic_path.exists()
         if generic_path.exists():
             return str(generic_path)
     # fallback to whatever is in TEMPLATE_OPTIONS
+    st.session_state.debug_info['template_path_debug']['final_fallback'] = str(base_path)
     return str(base_path)
 
 def generate_template(template_type: str, employee_data: Dict[str, Any], 
@@ -679,25 +681,22 @@ def generate_template(template_type: str, employee_data: Dict[str, Any],
     # Add embassy details if applicable
     if template_type == 'employment_letter_embassy' and embassy_details:
         enriched_data['country'] = embassy_details.get('country', '')
-        
-        # Backup validation: Check travel duration before generating template
-        if embassy_details.get('start_date') and embassy_details.get('end_date'):
+        if embassy_details.get('start_date'):
             try:
                 start_dt = datetime.datetime.strptime(embassy_details['start_date'], '%Y-%m-%d')
-                end_dt = datetime.datetime.strptime(embassy_details['end_date'], '%Y-%m-%d')
-                duration = (end_dt - start_dt).days
-                
-                if duration > 14:
-                    st.session_state.debug_info['template_generation']['error'] = f'Travel duration ({duration} days) exceeds 14-day limit'
-                    return None
-                    
-                enriched_data['start_date'] = start_dt.strftime('%d/%m')
-                enriched_data['end_date'] = end_dt.strftime('%d/%m')
+                enriched_data['start_date'] = start_dt.strftime('%d/%m/%Y')
             except:
                 enriched_data['start_date'] = embassy_details.get('start_date', '')
-                enriched_data['end_date'] = embassy_details.get('end_date', '')
         else:
             enriched_data['start_date'] = ''
+            
+        if embassy_details.get('end_date'):
+            try:
+                end_dt = datetime.datetime.strptime(embassy_details['end_date'], '%Y-%m-%d')
+                enriched_data['end_date'] = end_dt.strftime('%d/%m/%Y')
+            except:
+                enriched_data['end_date'] = embassy_details.get('end_date', '')
+        else:
             enriched_data['end_date'] = ''
     else:
         enriched_data['country'] = ''
@@ -715,6 +714,8 @@ def generate_template(template_type: str, employee_data: Dict[str, Any],
     is_arabic = template_type == 'employment_letter_arabic'
     
     st.session_state.debug_info['template_generation']['template_path'] = template_path
+    st.session_state.debug_info['template_generation']['gender'] = gender
+    st.session_state.debug_info['template_generation']['template_type'] = template_type
     st.session_state.debug_info['template_generation']['enriched_data'] = enriched_data
     
     # Generate document
