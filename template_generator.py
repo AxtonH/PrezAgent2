@@ -590,30 +590,26 @@ def get_gendered_template_path(template_type: str, gender: str) -> Optional[str]
         if gender in ['male', 'female']:
             gendered_name = f"Employment Letter to Embassies - {gender.capitalize()}{ext}"
             gendered_path = base_path.parent / gendered_name
-            if gendered_path.exists():
-                return str(gendered_path)
-        # Fallback to generic embassy letter (if present)
+            st.session_state.debug_info['template_path_debug']['embassy_gendered_path'] = str(gendered_path)
+            # Always use gendered template if gender is specified
+            return str(gendered_path)
+        # Fallback to generic embassy letter
         generic_name = f"Employment Letter to Embassies{ext}"
         generic_path = base_path.parent / generic_name
-        if generic_path.exists():
-            return str(generic_path)
-        # Final fallback: whatever path is in TEMPLATE_OPTIONS
-        return str(base_path)
+        return str(generic_path)
 
     # Handle experience letter templates
     if template_type == 'experience_letter':
         if gender in ['male', 'female']:
             gendered_name = f"Experience Letter - {gender.capitalize()}{ext}"
             gendered_path = base_path.parent / gendered_name
-            if gendered_path.exists():
-                return str(gendered_path)
+            st.session_state.debug_info['template_path_debug']['experience_gendered_path'] = str(gendered_path)
+            # Always use gendered template if gender is specified
+            return str(gendered_path)
         # fallback to generic experience letter
         generic_name = f"Experience Letter{ext}"
         generic_path = base_path.parent / generic_name
-        if generic_path.exists():
-            return str(generic_path)
-        # final fallback to whatever is in TEMPLATE_OPTIONS
-        return str(base_path)
+        return str(generic_path)
     
     # Handle employment letter templates (Arabic and English)
     # Arabic version
@@ -634,17 +630,17 @@ def get_gendered_template_path(template_type: str, gender: str) -> Optional[str]
             gendered_name = f"Employment Letter - {gender.capitalize()}{ext}"
             gendered_path = base_path.parent / gendered_name
             st.session_state.debug_info['template_path_debug']['gendered_path'] = str(gendered_path)
-            st.session_state.debug_info['template_path_debug']['gendered_exists'] = gendered_path.exists()
-            if gendered_path.exists():
-                return str(gendered_path)
+            st.session_state.debug_info['template_path_debug']['using_gendered'] = True
+            # For Streamlit Cloud deployment, always use gendered template if gender is specified
+            # The file existence will be checked later in fill_template()
+            return str(gendered_path)
         # fallback
         generic_name = f"Employment Letter{ext}"
         generic_path = base_path.parent / generic_name
         st.session_state.debug_info['template_path_debug']['generic_path'] = str(generic_path)
-        st.session_state.debug_info['template_path_debug']['generic_exists'] = generic_path.exists()
-        if generic_path.exists():
-            return str(generic_path)
-    # fallback to whatever is in TEMPLATE_OPTIONS
+        st.session_state.debug_info['template_path_debug']['using_generic'] = True
+        return str(generic_path)
+    # This shouldn't be reached for employment letters
     st.session_state.debug_info['template_path_debug']['final_fallback'] = str(base_path)
     return str(base_path)
 
